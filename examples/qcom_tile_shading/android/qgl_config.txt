@@ -1,0 +1,8 @@
+0x00000000=0x08675309
+
+VK_QCOM_tile_shading=TRUE
+
+MaxBinWidth=128
+MaxBinHeight=128
+
+;EnableAbortOnOpCapabilityFailure=FALSE

@@ -1,0 +1,10 @@
+# CODEOWNERS
+#
+# PLACEHOLDER — replace with the real @qualcomm/qhwi-maintainers GitHub team
+# (or individual maintainer handles) before this repository is made Public.
+# See open-source-playbook.md Phase 7 step 5-6.
+#
+# Each line is a file pattern followed by one or more owners.
+# The last matching pattern takes precedence.
+
+*    @qualcomm/qhwi-maintainers-placeholder

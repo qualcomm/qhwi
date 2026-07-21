@@ -1,0 +1,29 @@
+[submodule "Vulkan-Headers"]
+	path = external/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers
+[submodule "external/qre"]
+	path = external/qre
+	url = https://github.com/qualcomm/qre.git
+	fetchRecurseSubmodules = true
+	branch = main
+[submodule "external/VulkanMemoryAllocator"]
+	path = external/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+	branch = master
+[submodule "external/D3D12MemoryAllocator"]
+	path = external/D3D12MemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator
+	branch = master
+[submodule "external/DirectStorage"]
+	path = external/DirectStorage
+	# TODO: switch back to https://github.com/microsoft/DirectStorage.git once kashrajpal/clang-windows-fix is merged upstream
+	url = https://github.com/kashrajpal/DirectStorage.git
+	branch = clang-windows-fix
+[submodule "external/tracy"]
+	path = external/tracy
+	url = https://github.com/wolfpld/tracy
+	branch = master
+[submodule "test/ref"]
+	path = test/ref
+	url = https://github.com/qualcomm/qhwi-test-ref-assets.git
+	branch = main

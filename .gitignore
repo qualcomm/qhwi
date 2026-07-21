@@ -1,0 +1,16 @@
+**/build*/
+**/android/.gradle
+**/android/app/.cxx
+**/android/app/build
+**/android/.idea
+**/android/local.properties
+**/android/app/src/main/jniLibs
+**/android/app/src/main/assets
+.DS_Store
+.vscode
+**/.vs
+/out/build
+__pycache__
+data/precompiled/
+.
+.idea

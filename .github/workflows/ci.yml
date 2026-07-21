@@ -1,0 +1,177 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ---------------------------------------------------------------------------
+  # Windows — MSVC (Visual Studio 17 2022), Debug + Release
+  # ---------------------------------------------------------------------------
+  build-windows-msvc:
+    name: Build / Windows (MSVC)
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache DXC
+        uses: actions/cache@v4
+        with:
+          path: build/dependencies
+          key: windows-msvc-dxc-${{ hashFiles('GetDxc.cmake', 'external/qre/DownloadFileUtil.cmake') }}
+          restore-keys: windows-msvc-dxc-
+
+      - name: Configure
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -DQHWI_BUILD_UNIT_TESTS=ON -DQHWI_BUILD_EXAMPLES=ON
+
+      - name: Build (Debug)
+        run: cmake --build build --parallel --target qhwi_test --config Debug
+
+      - name: Build (Release)
+        run: cmake --build build --parallel --target qhwi_test --config Release
+
+  # ---------------------------------------------------------------------------
+  # Windows — Clang + Ninja Multi-Config, Debug + Release
+  # Requires LLVM (not pre-installed) and MSVC linker environment.
+  # ---------------------------------------------------------------------------
+  build-windows-clang:
+    name: Build / Windows (Clang)
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install LLVM
+        run: choco install llvm -y
+
+      - name: Set up MSVC linker environment
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          $vcvarsall = "$vsPath\VC\Auxiliary\Build\vcvarsall.bat"
+          $cmdOutput = cmd /c "`"$vcvarsall`" x64 && set"
+          foreach ($line in $cmdOutput) {
+            if ($line -match '^([^=]+)=(.*)$') {
+              Add-Content -Path $env:GITHUB_ENV -Value "$($Matches[1])=$($Matches[2])"
+            }
+          }
+
+      - name: Cache DXC
+        uses: actions/cache@v4
+        with:
+          path: build/dependencies
+          key: windows-clang-dxc-${{ hashFiles('GetDxc.cmake', 'external/qre/DownloadFileUtil.cmake') }}
+          restore-keys: windows-clang-dxc-
+
+      - name: Configure
+        run: cmake -S . -B build -G "Ninja Multi-Config" -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DQHWI_BUILD_UNIT_TESTS=ON -DQHWI_BUILD_EXAMPLES=ON
+
+      - name: Build (Debug)
+        run: cmake --build build --parallel --target qhwi_test --config Debug
+
+      - name: Build (Release)
+        run: cmake --build build --parallel --target qhwi_test --config Release
+
+  # ---------------------------------------------------------------------------
+  # Linux — Clang + Ninja Multi-Config, Debug only (compile verification)
+  # GPU tests (Vulkan) are not run here; they require a self-hosted runner.
+  # ---------------------------------------------------------------------------
+  build-linux:
+    name: Build / Linux (Clang)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            ninja-build \
+            libvulkan-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxcursor-dev \
+            libxi-dev
+
+      - name: Cache DXC
+        uses: actions/cache@v4
+        with:
+          path: build/dependencies
+          key: linux-dxc-${{ hashFiles('GetDxc.cmake', 'external/qre/DownloadFileUtil.cmake') }}
+          restore-keys: linux-dxc-
+
+      - name: Configure
+        run: cmake -S . -B build -G "Ninja Multi-Config" -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DQHWI_BUILD_UNIT_TESTS=ON -DQHWI_BUILD_EXAMPLES=ON
+
+      - name: Build (Debug)
+        run: cmake --build build --parallel --target qhwi_test --config Debug
+
+  # ---------------------------------------------------------------------------
+  # Android — Gradle assemble for test APK and all example APKs
+  # Requires NDK 23.1.7779620 as declared in app/build.gradle.
+  # ---------------------------------------------------------------------------
+  build-android:
+    name: Build / Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+
+      - name: Install Android NDK 23.1.7779620
+        run: echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "ndk;23.1.7779620"
+
+      - name: Build test APK
+        working-directory: test/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assemble
+
+      - name: Build example APKs
+        run: |
+          for dir in examples/*/android; do
+            echo "=== Building $dir ==="
+            chmod +x "$dir/gradlew"
+            (cd "$dir" && ./gradlew assemble)
+          done
+
+  # ---------------------------------------------------------------------------
+  # Format check — clang-format dry run (mirrors Jenkins auto-formatter job)
+  # Uses clang-format-18; requires 16+ for InsertBraces and RemoveSemicolon.
+  # ---------------------------------------------------------------------------
+  format-check:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format-18
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-18
+
+      - name: Check formatting
+        run: |
+          find . \( -path ./external -o -path ./build \) -prune -o \
+            \( -name "*.cpp" -o -name "*.h" \) \
+            -print0 | xargs -0 clang-format-18 --dry-run -Werror

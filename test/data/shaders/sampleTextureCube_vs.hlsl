@@ -1,0 +1,19 @@
+struct VSInput
+{
+    float2 pos : POSITION0;
+    float3 uvw : TEXCOORD0;
+};
+
+struct VSOutput
+{
+    float4 pos : SV_POSITION;
+    float3 uvw : TEXCOORD0;
+};
+
+VSOutput VSMain(VSInput input)
+{
+    VSOutput result;
+    result.pos = float4(input.pos, 0.5f, 1.0f);
+    result.uvw = input.uvw;
+    return result;
+}
