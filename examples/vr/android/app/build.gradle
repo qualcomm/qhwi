@@ -1,0 +1,53 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdk 33
+    ndkVersion '27.3.13750724'
+
+    defaultConfig {
+        applicationId = 'com.qualcomm.qhwi_example_vr'
+        minSdkVersion 28
+        // VR workaround: VR is broken when targetSdk is 31 or higher, due to change in permissions policy:
+        // libopenxr_forwardloader.oculus.so" ... is not accessible for the namespace: [name="classloader-namespace"...
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 29
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared','-DQHWI_BUILD_EXAMPLES=ON','-DQHWI_EXAMPLES_FILTER=vr'
+            }
+        }
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+    }
+    lint {
+        checkReleaseBuilds = false
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),
+                    'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            version '3.22.1+'
+            path '../../../../CMakeLists.txt'
+        }
+    }
+    namespace "com.qualcomm.qhwi_example_vr"
+    buildFeatures {
+        prefab true
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.google.android.material:material:1.9.0'
+}

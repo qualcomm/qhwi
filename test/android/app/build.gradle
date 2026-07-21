@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdk 33
+    ndkVersion '23.1.7779620'
+
+    defaultConfig {
+        applicationId = 'com.qualcomm.qhwi_test'
+        minSdkVersion 28
+        targetSdkVersion 33
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared',
+                          '-DQHWI_BUILD_UNIT_TESTS=ON'
+                // To enable PIL, add the following arguments (see README.md for details):
+                // '-DPIL_INCLUDE_DIR=<path-to-PIL>/include',
+                // '-DPIL_BINARY_DIR=<path-to-PIL>/bin/arm64-v8a'
+            }
+        }
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),
+                    'proguard-rules.pro'
+            signingConfig signingConfigs.debug  // The .debug allows end users to adb push assets into the application folder
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            version '3.24.1+'
+            path '../../../CMakeLists.txt'
+        }
+    }
+    namespace 'com.qualcomm.qhwi_test'
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+}

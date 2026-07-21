@@ -1,0 +1,8 @@
+#ifndef __QHWI_CONFIG_H__
+#define __QHWI_CONFIG_H__
+
+#define QHWI_VERSION_MAJOR @qhwi_VERSION_MAJOR@
+#define QHWI_VERSION_MINOR @qhwi_VERSION_MINOR@
+#define QHWI_VERSION_PATCH @qhwi_VERSION_PATCH@
+
+#endif

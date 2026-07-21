@@ -1,0 +1,3 @@
+0x00000000=0x08675309
+VK_QCOM_tile_memory_heap=TRUE
+VK_QCOM_tile_shading=FALSE

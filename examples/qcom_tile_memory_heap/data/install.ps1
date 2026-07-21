@@ -1,0 +1,2 @@
+adb shell mkdir -p /sdcard/Android/data/com.qualcomm.qhwi_example_qcom_tile_memory_heap/files/data/textures
+ adb push .\data\textures\sample.png /sdcard/Android/data/com.qualcomm.qhwi_example_qcom_tile_memory_heap/files/data/textures/.

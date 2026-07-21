@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdk 33
+    ndkVersion '23.1.7779620'
+
+    defaultConfig {
+        applicationId = 'com.qualcomm.qhwi_example_vk_custom_resolve'
+        minSdkVersion 28
+        targetSdkVersion 33
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared','-DQHWI_BUILD_EXAMPLES=ON','-DQHWI_EXAMPLES_FILTER=vk_custom_resolve'
+            }
+        }
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),
+                    'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            version '3.22.1+'
+            path '../../../../CMakeLists.txt'
+        }
+    }
+    namespace "com.qualcomm.qhwi_example_vk_custom_resolve"
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+}

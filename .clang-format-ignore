@@ -1,0 +1,11 @@
+(.*)?external.*
+(.*/)?build/.*
+(.*/)?out/.*
+(.*/)?\.cxx/.*
+
+# Ignore formatting shaders for now
+(.*)?data/.*
+
+# Ignore the android third party library
+(.*)?android_native_app_glue(.c|.cpp|.h)
+(.*)?gestureDetector(.c|.cpp|.h)

@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.application'
+}
+
+def pilDir = ''
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    def localProps = new Properties()
+    localPropsFile.withReader('UTF-8') { reader -> localProps.load(reader) }
+    pilDir = localProps.getProperty('QHWI_PIL_DIR', '')
+}
+
+android {
+    compileSdk 34
+    ndkVersion '27.3.13750724'
+
+    defaultConfig {
+        applicationId = 'com.qualcomm.qhwi_example_qcom_tile_memory_heap'
+        minSdkVersion 24
+        targetSdkVersion 34
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared', '-DQHWI_BUILD_EXAMPLES=ON', '-DQHWI_EXAMPLES_FILTER=qcom_tile_memory_heap', "-DQHWI_PIL_DIR=${pilDir}"
+            }
+        }
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),
+                    'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            version '3.22.1+'
+            path '../../../../CMakeLists.txt'
+        }
+    }
+    namespace "com.qualcomm.qhwi_example_qcom_tile_memory_heap"
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+}
