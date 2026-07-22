@@ -78,7 +78,7 @@ Future Work:
 
 ## High Level Design
 
-![High Level Design](doc/qhwi_high_level_0.drawio.svg "High Level Design")
+![High Level Design](doc/qhwi_high_level_design.png "High Level Design")
 ## Dependencies
 
 QHWI is lightweight, with minimal dependencies.
