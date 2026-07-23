@@ -306,28 +306,22 @@ static std::string to_string(D3D12_RESOURCE_STATES s)
 static std::string to_string(const D3D12_RESOURCE_TRANSITION_BARRIER& s)
 {
     std::stringstream ss;
-    ss << "D3D12_RESOURCE_TRANSITION_BARRIER("
-       << "pResource: " << s.pResource << " "
-       << "stateBefore: " << to_string(s.StateBefore) << " "
-       << "stateAfter: " << to_string(s.StateAfter) << " "
-       << "subresource: " << s.Subresource << ")";
+    ss << "D3D12_RESOURCE_TRANSITION_BARRIER(" << "pResource: " << s.pResource << " " << "stateBefore: " << to_string(s.StateBefore) << " "
+       << "stateAfter: " << to_string(s.StateAfter) << " " << "subresource: " << s.Subresource << ")";
     return ss.str();
 }
 
 static std::string to_string(const D3D12_RESOURCE_ALIASING_BARRIER& s)
 {
     std::stringstream ss;
-    ss << "D3D12_RESOURCE_ALIASING_BARRIER("
-       << "pResourceBefore: " << s.pResourceBefore << " "
-       << "pResourceAfter: " << s.pResourceAfter << ")";
+    ss << "D3D12_RESOURCE_ALIASING_BARRIER(" << "pResourceBefore: " << s.pResourceBefore << " " << "pResourceAfter: " << s.pResourceAfter << ")";
     return ss.str();
 }
 
 static std::string to_string(const D3D12_RESOURCE_UAV_BARRIER& s)
 {
     std::stringstream ss;
-    ss << "D3D12_RESOURCE_UAV_BARRIER("
-       << "pResource: " << s.pResource << ")";
+    ss << "D3D12_RESOURCE_UAV_BARRIER(" << "pResource: " << s.pResource << ")";
     return ss.str();
 }
 
