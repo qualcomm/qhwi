@@ -45,9 +45,11 @@ Create every file below. Do not skip any.
 ### `examples/{name}/src/{name}.h`
 
 ```cpp
-// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// All rights reserved.
-// Confidential and Proprietary - Qualcomm Technologies, Inc.
+//  {name}.h
+//  QHWI
+//
+//  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//  SPDX-License-Identifier: BSD-3-Clause-Clear
 #pragma once
 
 #include "qhwi_example.h"
@@ -93,9 +95,11 @@ private:
 ### `examples/{name}/src/{name}.cpp`
 
 ```cpp
-// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// All rights reserved.
-// Confidential and Proprietary - Qualcomm Technologies, Inc.
+//  {name}.cpp
+//  QHWI
+//
+//  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+//  SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #ifdef QHWI_PLATFORM_ANDROID
 #    include <qhwi_android_util.h>
@@ -297,8 +301,7 @@ run_command(${Python3_EXECUTABLE} ./compileShaders.py
 
 ```python
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-# All rights reserved.
-# Confidential and Proprietary - Qualcomm Technologies, Inc.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
 
 import os, platform, argparse, subprocess, sys, shutil
 from typing import NamedTuple
@@ -331,8 +334,7 @@ Binding conventions:
 **`{name}_vs.hlsl`:**
 ```hlsl
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// All rights reserved.
-// Confidential and Proprietary - Qualcomm Technologies, Inc.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
 
 struct VSInput
 {
@@ -358,8 +360,7 @@ VSOutput VSMain(VSInput i)
 **`{name}_ps.hlsl`:**
 ```hlsl
 // Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
-// All rights reserved.
-// Confidential and Proprietary - Qualcomm Technologies, Inc.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
 
 // [EXTENSION_BINDINGS] add extension-specific textures/samplers/UAVs here
 Texture2D<float4> g_Tex     : register(t0);
