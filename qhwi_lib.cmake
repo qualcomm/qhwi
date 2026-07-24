@@ -14,28 +14,36 @@ if (QHWI_ENABLE_D3D12_BACKEND)
     # See: https://devblogs.microsoft.com/pix/winpixeventruntime/
     DownloadExtractFile(pix https://www.nuget.org/api/v2/package/WinPixEventRuntime/1.0.231030001)
 
-    # Download direct storage API package
-    DownloadExtractFile(dstorage https://www.nuget.org/api/v2/package/Microsoft.Direct3D.DirectStorage/1.3.0)
-
-    set(QHWI_D3D12_INCLUDE_DIRS "${d3d12_SOURCE_DIR}/build/native/include" "${d3d12_SOURCE_DIR}/build/native/include/d3dx12" "${pix_SOURCE_DIR}/Include/WinPixEventRuntime" "${dstorage_SOURCE_DIR}/native/include" CACHE INTERNAL "")
+    set(QHWI_D3D12_INCLUDE_DIRS "${d3d12_SOURCE_DIR}/build/native/include" "${d3d12_SOURCE_DIR}/build/native/include/d3dx12" "${pix_SOURCE_DIR}/Include/WinPixEventRuntime" CACHE INTERNAL "")
 
     set(QHWI_DXC_LIBRARIES_DIR "${DXC_LIBRARIES_DIR}" CACHE INTERNAL "")
     set(QHWI_DXC_BINARIES_DIR "${DXC_BINARIES_DIR}" CACHE INTERNAL "")
 
+    if(QHWI_ENABLE_DIRECTSTORAGE)
+        # Download direct storage API package
+        DownloadExtractFile(dstorage https://www.nuget.org/api/v2/package/Microsoft.Direct3D.DirectStorage/1.3.0)
+
+        list(APPEND QHWI_D3D12_INCLUDE_DIRS "${dstorage_SOURCE_DIR}/native/include")
+        set(QHWI_D3D12_INCLUDE_DIRS "${QHWI_D3D12_INCLUDE_DIRS}" CACHE INTERNAL "" FORCE)
+    endif()
+
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
         set(QHWI_D3D12_BIN_DIR "${d3d12_SOURCE_DIR}/build/native/bin/x64" CACHE INTERNAL "")
         set(QHWI_D3D12_PIX_BIN_DIR "${pix_SOURCE_DIR}/bin/x64" CACHE INTERNAL "")
-        set(QHWI_D3D12_DSTORAGE_LIB_DIR "${dstorage_SOURCE_DIR}/native/lib/x64" CACHE INTERNAL "")
-        set(QHWI_D3D12_DSTORAGE_BIN_DIR "${dstorage_SOURCE_DIR}/native/bin/x64" CACHE INTERNAL "")
+        if(QHWI_ENABLE_DIRECTSTORAGE)
+            set(QHWI_D3D12_DSTORAGE_LIB_DIR "${dstorage_SOURCE_DIR}/native/lib/x64" CACHE INTERNAL "")
+            set(QHWI_D3D12_DSTORAGE_BIN_DIR "${dstorage_SOURCE_DIR}/native/bin/x64" CACHE INTERNAL "")
+        endif()
     elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
         set(QHWI_D3D12_BIN_DIR "${d3d12_SOURCE_DIR}/build/native/bin/arm64" CACHE INTERNAL "")
         set(QHWI_D3D12_PIX_BIN_DIR "${pix_SOURCE_DIR}/bin/ARM64" CACHE INTERNAL "")
-        set(QHWI_D3D12_DSTORAGE_LIB_DIR "${dstorage_SOURCE_DIR}/native/lib/ARM64" CACHE INTERNAL "")
-        set(QHWI_D3D12_DSTORAGE_BIN_DIR "${dstorage_SOURCE_DIR}/native/bin/ARM64" CACHE INTERNAL "")
-
+        if(QHWI_ENABLE_DIRECTSTORAGE)
+            set(QHWI_D3D12_DSTORAGE_LIB_DIR "${dstorage_SOURCE_DIR}/native/lib/ARM64" CACHE INTERNAL "")
+            set(QHWI_D3D12_DSTORAGE_BIN_DIR "${dstorage_SOURCE_DIR}/native/bin/ARM64" CACHE INTERNAL "")
+        endif()
     else()
         message(ERROR "Unrecognized platform: ${CMAKE_SYSTEM_PROCESSOR}")
-    endif()    
+    endif()
 endif()
 
 if (QHWI_BUILD_UNIT_TESTS OR QHWI_BUILD_EXAMPLES)
@@ -148,7 +156,9 @@ if (QHWI_ENABLE_D3D12_BACKEND)
 	endif()
 endif()
 
-set_target_properties(GDeflate PROPERTIES FOLDER "ThirdParty")
+if(QHWI_ENABLE_DIRECTSTORAGE)
+    set_target_properties(GDeflate PROPERTIES FOLDER "ThirdParty")
+endif()
 
 add_library(qhwi STATIC
     ${QHWI_SOURCE_FILES}
@@ -180,6 +190,7 @@ target_compile_definitions(qhwi
         $<$<BOOL:${QHWI_ENABLE_PIX_SUPPORT}>:QHWI_GPU_CAPTURE_BACKEND_PIX USE_PIX>
         $<$<BOOL:${QHWI_ENABLE_SER}>:QHWI_ENABLE_SER>
         $<$<BOOL:${QHWI_ENABLE_PIL}>:QHWI_ENABLE_PIL>
+        $<$<BOOL:${QHWI_ENABLE_DIRECTSTORAGE}>:QHWI_ENABLE_DIRECTSTORAGE>
         QHWI_PLATFORM_${SYSTEM_NAME_UPPERCASE}
     PRIVATE
         $<$<BOOL:${USE_GLFW_WINDOW_BACKEND}>:QHWI_WINDOW_BACKEND_GLFW>
@@ -216,10 +227,11 @@ target_include_directories(qhwi
 
 target_link_libraries(qhwi PUBLIC
     qre
-    $<$<BOOL:${QHWI_ENABLE_D3D12_BACKEND}>:dxguid ${QHWI_D3D12_PIX_BIN_DIR}/WinPixEventRuntime.lib ${QHWI_D3D12_DSTORAGE_LIB_DIR}/dstorage.lib>
+    $<$<BOOL:${QHWI_ENABLE_D3D12_BACKEND}>:dxguid ${QHWI_D3D12_PIX_BIN_DIR}/WinPixEventRuntime.lib>
+    $<$<AND:$<BOOL:${QHWI_ENABLE_D3D12_BACKEND}>,$<BOOL:${QHWI_ENABLE_DIRECTSTORAGE}>>:${QHWI_D3D12_DSTORAGE_LIB_DIR}/dstorage.lib>
 	$<$<BOOL:${QHWI_ENABLE_D3D12_BACKEND}>:dma>
     $<$<BOOL:${USE_GLFW_WINDOW_BACKEND}>:glfw>
-    GDeflate
+    $<$<BOOL:${QHWI_ENABLE_DIRECTSTORAGE}>:GDeflate>
 )
 
 qre_set_target_recommended_warnings(qhwi)

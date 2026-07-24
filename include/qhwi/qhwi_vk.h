@@ -1508,7 +1508,9 @@ public:
 
     qre::RefCountPtr<CommandQueue> createCommandQueue(const CommandQueue::Description& desc) override;
 
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
     qre::RefCountPtr<qhwi::directstorage::File> createStorageFile() override;
+#endif
 
     ext::VkSurface* getVkWindowSurface() { return &m_windowSurface; }
 
@@ -1990,6 +1992,7 @@ namespace hash_util
 uint64_t Fnv1a64Continue(uint64_t& hash, const vk::ImageViewCreateInfo& v);
 };
 
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
 namespace directstorage
 {
 
@@ -2089,6 +2092,7 @@ private:
 };
 
 } // namespace directstorage
+#endif // QHWI_ENABLE_DIRECTSTORAGE
 
 } // namespace qhwi
 

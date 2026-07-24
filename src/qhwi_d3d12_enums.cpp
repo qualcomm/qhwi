@@ -595,6 +595,7 @@ D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS qhwi::d3dRaytracingAccelerat
     return r;
 }
 
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
 DSTORAGE_REQUEST_SOURCE_TYPE qhwi::directstorage::dstorageRequestSourceType(qhwi::directstorage::StorageRequestSourceType sourceType)
 {
     switch (sourceType)
@@ -644,3 +645,4 @@ DSTORAGE_COMPRESSION_FORMAT qhwi::directstorage::dstorageCompressionFormat(qhwi:
         return DSTORAGE_COMPRESSION_FORMAT(0);
     }
 }
+#endif // QHWI_ENABLE_DIRECTSTORAGE

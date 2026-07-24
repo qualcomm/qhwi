@@ -4185,6 +4185,7 @@ qhwi::D3dDevice::D3dDevice(D3dContext* ctx, ID3D12Device* device, IDXGIAdapter1*
     m_timerQueryHeap.init(this, "timerQueryHeap");
 
     m_hD3d12 = LoadLibraryA("d3d12.dll");
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
     m_storageFactory = qre::MakeRefCountPtr<directstorage::Factory>(new directstorage::D3dFactory());
 
     if (static_cast<directstorage::D3dFactory*>(m_storageFactory.Get())->init() != ResultCode::eSuccess)
@@ -4192,6 +4193,7 @@ qhwi::D3dDevice::D3dDevice(D3dContext* ctx, ID3D12Device* device, IDXGIAdapter1*
         m_storageFactory = nullptr;
         QHWI_LOGW("Failed to get IDStorageFactory");
     }
+#endif // QHWI_ENABLE_DIRECTSTORAGE
 
     if (m_hD3d12)
     {
@@ -6144,6 +6146,7 @@ uint64_t qhwi::hash_util::Fnv1a64Continue(uint64_t& hash, const D3D12_DEPTH_STEN
     }
 }
 
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
 qre::RefCountPtr<qhwi::directstorage::File> qhwi::D3dDevice::createStorageFile()
 {
     return qre::MakeRefCountPtr<qhwi::directstorage::File>(new qhwi::directstorage::D3dFile());
@@ -6323,3 +6326,4 @@ qhwi::ResultCode qhwi::directstorage::D3dStorageStatusArray::getResult(uint32_t 
         return ResultCode::eErrorOther;
     }
 }
+#endif // QHWI_ENABLE_DIRECTSTORAGE

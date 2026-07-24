@@ -18,7 +18,9 @@
 #include <qhwi/qhwi_util.h>
 #include <qre/math/hash.h>
 #include <qre/text/textutil.h>
-#include <TileStream.h>
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
+#    include <TileStream.h>
+#endif
 #include <array>
 #include <sstream>
 #include <cstdio>
@@ -4239,7 +4241,9 @@ void qhwi::VkDevice::init(Context* context,
 
     if (vkFeaturesInfo.supportsMemoryDecompression())
     {
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
         m_storageFactory = qre::MakeRefCountPtr<qhwi::directstorage::Factory>(new qhwi::directstorage::VkFactory(this));
+#endif
     }
 
     if (!initFromHandleParams)
@@ -6065,6 +6069,7 @@ uint64_t qhwi::hash_util::Fnv1a64Continue(uint64_t& hash, const vk::ImageViewCre
     return hash;
 }
 
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
 qre::RefCountPtr<qhwi::directstorage::File> qhwi::VkDevice::createStorageFile()
 {
     return qre::MakeRefCountPtr<qhwi::directstorage::File>(new qhwi::directstorage::VkFile());
@@ -6666,3 +6671,4 @@ void qhwi::directstorage::VkStorageQueue::enqueueMemToMultipleSubresources(std::
         QHWI_FATAL("Invalid compression format");
     }
 }
+#endif // QHWI_ENABLE_DIRECTSTORAGE

@@ -13,7 +13,9 @@
 #include <qhwi/qhwi_enums.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
-#include <dstorage.h>
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
+#    include <dstorage.h>
+#endif
 
 namespace qhwi
 {
@@ -52,6 +54,7 @@ DXGI_USAGE dxgiUsage(TextureUsageMask mask);
 
 Format qhwi(DXGI_FORMAT format);
 
+#ifdef QHWI_ENABLE_DIRECTSTORAGE
 namespace directstorage
 {
 DSTORAGE_REQUEST_SOURCE_TYPE dstorageRequestSourceType(StorageRequestSourceType sourceType);
@@ -59,5 +62,6 @@ DSTORAGE_REQUEST_DESTINATION_TYPE dstorageRequestDestinationType(StorageRequestD
 DSTORAGE_PRIORITY dstoragePriority(StoragePriority priority);
 DSTORAGE_COMPRESSION_FORMAT dstorageCompressionFormat(CompressionFormat format);
 } // namespace directstorage
+#endif // QHWI_ENABLE_DIRECTSTORAGE
 } // namespace qhwi
 #endif
