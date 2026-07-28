@@ -18,7 +18,9 @@
 #include <qhwi/qhwi_util.h>
 #include <qre/math/hash.h>
 #include <qre/text/textutil.h>
-#include <TileStream.h>
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+#    include <TileStream.h>
+#endif
 #include <array>
 #include <sstream>
 #include <cstdio>
@@ -4199,7 +4201,9 @@ void qhwi::VkDevice::init(Context* context,
     m_instance = instance;
     m_physicalDevice = physicalDevice;
     m_rayTracingPipelineProperties = {};
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
     m_storageFactory = nullptr;
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
     // query features of physical device
     setFeature(Feature_ConservativeRasterization, supportsExtension(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME));
@@ -4239,7 +4243,9 @@ void qhwi::VkDevice::init(Context* context,
 
     if (vkFeaturesInfo.supportsMemoryDecompression())
     {
-        m_storageFactory = qre::MakeRefCountPtr<qhwi::directstorage::Factory>(new qhwi::directstorage::VkFactory(this));
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+        m_storageFactory = qre::MakeRefCountPtr<qhwi::compressedstorage::Factory>(new qhwi::compressedstorage::VkFactory(this));
+#endif
     }
 
     if (!initFromHandleParams)
@@ -6065,23 +6071,24 @@ uint64_t qhwi::hash_util::Fnv1a64Continue(uint64_t& hash, const vk::ImageViewCre
     return hash;
 }
 
-qre::RefCountPtr<qhwi::directstorage::File> qhwi::VkDevice::createStorageFile()
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+qre::RefCountPtr<qhwi::compressedstorage::File> qhwi::VkDevice::createStorageFile()
 {
-    return qre::MakeRefCountPtr<qhwi::directstorage::File>(new qhwi::directstorage::VkFile());
+    return qre::MakeRefCountPtr<qhwi::compressedstorage::File>(new qhwi::compressedstorage::VkFile());
 }
 
-qhwi::ResultCode qhwi::directstorage::VkFactory::openFile(const char* fileToLoad, File* file) const
+qhwi::ResultCode qhwi::compressedstorage::VkFactory::openFile(const char* fileToLoad, File* file) const
 {
     QHWI_ASSERT_MSG(file != nullptr, "Invalid file");
     return static_cast<VkFile*>(file)->map(fileToLoad) ? qhwi::ResultCode::eSuccess : qhwi::ResultCode::eErrorOther;
 }
 
-qre::RefCountPtr<qhwi::directstorage::StorageStatusArray> qhwi::directstorage::VkFactory::createStatusArray(uint32_t capacity, const char* name) const
+qre::RefCountPtr<qhwi::compressedstorage::StorageStatusArray> qhwi::compressedstorage::VkFactory::createStatusArray(uint32_t capacity, const char* name) const
 {
     return qre::MakeRefCountPtr<StorageStatusArray>(new VkStorageStatusArray());
 };
 
-bool qhwi::directstorage::VkFile::map(const char* fileToLoad)
+bool qhwi::compressedstorage::VkFile::map(const char* fileToLoad)
 {
     QHWI_ASSERT_MSG(fileToLoad != nullptr, "Invalid file");
 
@@ -6106,14 +6113,14 @@ bool qhwi::directstorage::VkFile::map(const char* fileToLoad)
     return true;
 }
 
-void qhwi::directstorage::VkStorageQueue::init()
+void qhwi::compressedstorage::VkStorageQueue::init()
 {
     QHWI_ASSERT_MSG(m_device != nullptr, "Device cannot be nullptr");
 
     m_commandQueue = qre::MakeRefCountPtr<qhwi::CommandQueue>(new VkCommandQueue(m_device, CommandQueue::Description()));
 }
 
-void qhwi::directstorage::VkStorageQueue::submit()
+void qhwi::compressedstorage::VkStorageQueue::submit()
 {
     if (m_isRecording)
     {
@@ -6143,7 +6150,7 @@ void qhwi::directstorage::VkStorageQueue::submit()
     }
 }
 
-void qhwi::directstorage::VkStorageQueue::enqueueRequest(const Request& request)
+void qhwi::compressedstorage::VkStorageQueue::enqueueRequest(const Request& request)
 {
     QHWI_ASSERT_MSG(m_commandQueue != nullptr, "Command queue cannot be nullptr");
 
@@ -6161,7 +6168,7 @@ void qhwi::directstorage::VkStorageQueue::enqueueRequest(const Request& request)
 
     switch (vkRequest.sourceType)
     {
-    case qhwi::directstorage::StorageRequestSourceType::eFile:
+    case qhwi::compressedstorage::StorageRequestSourceType::eFile:
     {
         const SourceFile& srcFile = std::get<SourceFile>(vkRequest.source);
         FileInfo fileSize;
@@ -6171,7 +6178,7 @@ void qhwi::directstorage::VkStorageQueue::enqueueRequest(const Request& request)
     }
     break;
 
-    case qhwi::directstorage::StorageRequestSourceType::eMemory:
+    case qhwi::compressedstorage::StorageRequestSourceType::eMemory:
     {
         const SourceMemory& srcMemory = std::get<SourceMemory>(vkRequest.source);
         data = { static_cast<const uint8_t*>(srcMemory.sourceMemoryPtr), srcMemory.size };
@@ -6184,23 +6191,23 @@ void qhwi::directstorage::VkStorageQueue::enqueueRequest(const Request& request)
 
     switch (vkRequest.destinationType)
     {
-    case qhwi::directstorage::StorageRequestDestinationType::eMemory:
-        enqueueMemToMem(data, std::get<qhwi::directstorage::DestinationMemory>(vkRequest.destination), vkRequest);
+    case qhwi::compressedstorage::StorageRequestDestinationType::eMemory:
+        enqueueMemToMem(data, std::get<qhwi::compressedstorage::DestinationMemory>(vkRequest.destination), vkRequest);
         break;
 
-    case qhwi::directstorage::StorageRequestDestinationType::eBuffer:
-        enqueueMemToBuffer(data, std::get<qhwi::directstorage::DestinationBuffer>(vkRequest.destination), vkRequest);
+    case qhwi::compressedstorage::StorageRequestDestinationType::eBuffer:
+        enqueueMemToBuffer(data, std::get<qhwi::compressedstorage::DestinationBuffer>(vkRequest.destination), vkRequest);
         break;
 
-    case qhwi::directstorage::StorageRequestDestinationType::eTextureRegion:
-        enqueueMemToTextureRegion(data, std::get<qhwi::directstorage::DestinationTextureRegion>(vkRequest.destination), vkRequest);
+    case qhwi::compressedstorage::StorageRequestDestinationType::eTextureRegion:
+        enqueueMemToTextureRegion(data, std::get<qhwi::compressedstorage::DestinationTextureRegion>(vkRequest.destination), vkRequest);
         break;
 
-    case qhwi::directstorage::StorageRequestDestinationType::eMutipleSubresources:
-        enqueueMemToMultipleSubresources(data, std::get<qhwi::directstorage::DestinationMultipleSubresources>(vkRequest.destination), vkRequest);
+    case qhwi::compressedstorage::StorageRequestDestinationType::eMutipleSubresources:
+        enqueueMemToMultipleSubresources(data, std::get<qhwi::compressedstorage::DestinationMultipleSubresources>(vkRequest.destination), vkRequest);
         break;
 
-    case qhwi::directstorage::StorageRequestDestinationType::eTiles:
+    case qhwi::compressedstorage::StorageRequestDestinationType::eTiles:
         QHWI_TODO();
         break;
 
@@ -6211,10 +6218,10 @@ void qhwi::directstorage::VkStorageQueue::enqueueRequest(const Request& request)
     ++m_numEnqueuedRequests;
 }
 
-void qhwi::directstorage::VkStorageQueue::readTileStreamHeader(std::span<const uint8_t> tileStream,
-                                                               uint32_t& numTiles,
-                                                               const uint32_t*& tileOffsetStart,
-                                                               std::span<const uint8_t>& stream) const
+void qhwi::compressedstorage::VkStorageQueue::readTileStreamHeader(std::span<const uint8_t> tileStream,
+                                                                   uint32_t& numTiles,
+                                                                   const uint32_t*& tileOffsetStart,
+                                                                   std::span<const uint8_t>& stream) const
 {
     constexpr size_t TileStreamSize = sizeof(GDeflate::TileStream);
 
@@ -6224,7 +6231,7 @@ void qhwi::directstorage::VkStorageQueue::readTileStreamHeader(std::span<const u
     stream = { reinterpret_cast<const uint8_t*>(tileOffsetStart + numTiles), tileStream.size() - (TileStreamSize + sizeof(uint32_t) * numTiles) };
 }
 
-void qhwi::directstorage::VkStorageQueue::enqueueMemToMem(std::span<const uint8_t> src, const DestinationMemory& dst, VkRequest& vkRequest)
+void qhwi::compressedstorage::VkStorageQueue::enqueueMemToMem(std::span<const uint8_t> src, const DestinationMemory& dst, VkRequest& vkRequest)
 {
     switch (vkRequest.compressionFormat)
     {
@@ -6319,7 +6326,7 @@ void qhwi::directstorage::VkStorageQueue::enqueueMemToMem(std::span<const uint8_
     }
 }
 
-void qhwi::directstorage::VkStorageQueue::enqueueMemToBuffer(std::span<const uint8_t> src, const DestinationBuffer& dst, VkRequest& vkRequest)
+void qhwi::compressedstorage::VkStorageQueue::enqueueMemToBuffer(std::span<const uint8_t> src, const DestinationBuffer& dst, VkRequest& vkRequest)
 {
     QHWI_ASSERT(dst.size >= vkRequest.uncompressedSize);
 
@@ -6399,7 +6406,7 @@ void qhwi::directstorage::VkStorageQueue::enqueueMemToBuffer(std::span<const uin
     }
 }
 
-void qhwi::directstorage::VkStorageQueue::enqueueMemToTextureRegion(std::span<const uint8_t> src, const DestinationTextureRegion& dst, VkRequest& vkRequest)
+void qhwi::compressedstorage::VkStorageQueue::enqueueMemToTextureRegion(std::span<const uint8_t> src, const DestinationTextureRegion& dst, VkRequest& vkRequest)
 {
     QHWI_ASSERT(dst.texture != nullptr);
     QHWI_ASSERT(dst.origin.x == 0 && dst.origin.y == 0 && dst.origin.z == 0);
@@ -6519,7 +6526,7 @@ void qhwi::directstorage::VkStorageQueue::enqueueMemToTextureRegion(std::span<co
     }
 }
 
-void qhwi::directstorage::VkStorageQueue::enqueueMemToMultipleSubresources(std::span<const uint8_t> src, const DestinationMultipleSubresources& dst, VkRequest& vkRequest)
+void qhwi::compressedstorage::VkStorageQueue::enqueueMemToMultipleSubresources(std::span<const uint8_t> src, const DestinationMultipleSubresources& dst, VkRequest& vkRequest)
 {
     QHWI_ASSERT(dst.texture != nullptr);
     QHWI_ASSERT(dst.firstSubresource == 0);
@@ -6666,3 +6673,4 @@ void qhwi::directstorage::VkStorageQueue::enqueueMemToMultipleSubresources(std::
         QHWI_FATAL("Invalid compression format");
     }
 }
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE

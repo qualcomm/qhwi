@@ -16,9 +16,13 @@
 	branch = master
 [submodule "external/DirectStorage"]
 	path = external/DirectStorage
-	# TODO: switch back to https://github.com/microsoft/DirectStorage.git once kashrajpal/clang-windows-fix is merged upstream
-	url = https://github.com/kashrajpal/DirectStorage.git
-	branch = clang-windows-fix
+	url = https://github.com/microsoft/DirectStorage.git
+	branch = main
+	# Note: upstream has a known Clang-on-Windows build issue in GDeflate/libdeflate.
+	# If building with QHWI_ENABLE_DIRECTSTORAGE=ON under clang-cl on Windows, use the
+	# workaround fork: https://github.com/kashrajpal/DirectStorage.git (clang-windows-fix branch)
+	# until the fix lands upstream. Since QHWI_ENABLE_DIRECTSTORAGE defaults to OFF,
+	# this submodule is not fetched by default.
 [submodule "external/tracy"]
 	path = external/tracy
 	url = https://github.com/wolfpld/tracy

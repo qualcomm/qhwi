@@ -67,7 +67,10 @@ function(add_qhwi_example name)
     add_custom_command(TARGET ${name} POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${QHWI_D3D12_BIN_DIR}/D3D12Core.dll" "$<TARGET_FILE_DIR:${name}>/D3D12/D3D12Core.dll"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${QHWI_D3D12_BIN_DIR}/d3d12SDKLayers.dll" "$<TARGET_FILE_DIR:${name}>/D3D12/d3d12SDKLayers.dll"
-        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${QHWI_D3D12_PIX_BIN_DIR}/WinPixEventRuntime.dll" "$<TARGET_FILE_DIR:${name}>/WinPixEventRuntime.dll"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${QHWI_D3D12_PIX_BIN_DIR}/WinPixEventRuntime.dll" "$<TARGET_FILE_DIR:${name}>/WinPixEventRuntime.dll")
+    endif()
+    if (QHWI_ENABLE_D3D12_BACKEND AND QHWI_ENABLE_COMPRESSED_STORAGE)
+    add_custom_command(TARGET ${name} POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${QHWI_D3D12_DSTORAGE_BIN_DIR}/dstorage.dll" "$<TARGET_FILE_DIR:${name}>/dstorage.dll"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${QHWI_D3D12_DSTORAGE_BIN_DIR}/dstoragecore.dll" "$<TARGET_FILE_DIR:${name}>/dstoragecore.dll")
     endif()

@@ -4185,13 +4185,15 @@ qhwi::D3dDevice::D3dDevice(D3dContext* ctx, ID3D12Device* device, IDXGIAdapter1*
     m_timerQueryHeap.init(this, "timerQueryHeap");
 
     m_hD3d12 = LoadLibraryA("d3d12.dll");
-    m_storageFactory = qre::MakeRefCountPtr<directstorage::Factory>(new directstorage::D3dFactory());
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+    m_storageFactory = qre::MakeRefCountPtr<compressedstorage::Factory>(new compressedstorage::D3dFactory());
 
-    if (static_cast<directstorage::D3dFactory*>(m_storageFactory.Get())->init() != ResultCode::eSuccess)
+    if (static_cast<compressedstorage::D3dFactory*>(m_storageFactory.Get())->init() != ResultCode::eSuccess)
     {
         m_storageFactory = nullptr;
         QHWI_LOGW("Failed to get IDStorageFactory");
     }
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
     if (m_hD3d12)
     {
@@ -4244,7 +4246,11 @@ qhwi::D3dDevice::D3dDevice(D3dContext* ctx, ID3D12Device* device, IDXGIAdapter1*
     setFeature(Feature_HdrMetadata, true);
     setFeature(Feature_Barycentric, m_d3dFeaturesInfo.supportsBarycentrics());
     m_supportsEnhancedBarriers = m_d3dFeaturesInfo.supportsEnhancedBarriers();
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
     setFeature(Feature_StorageQueue, m_storageFactory != nullptr);
+#else
+    setFeature(Feature_StorageQueue, false);
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
     setFeature(Feature_OpacityMicromaps, m_d3dFeaturesInfo.supportsOpacityMicromaps());
 
     m_rayTracingPipelineProperties = {};
@@ -6144,17 +6150,18 @@ uint64_t qhwi::hash_util::Fnv1a64Continue(uint64_t& hash, const D3D12_DEPTH_STEN
     }
 }
 
-qre::RefCountPtr<qhwi::directstorage::File> qhwi::D3dDevice::createStorageFile()
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+qre::RefCountPtr<qhwi::compressedstorage::File> qhwi::D3dDevice::createStorageFile()
 {
-    return qre::MakeRefCountPtr<qhwi::directstorage::File>(new qhwi::directstorage::D3dFile());
+    return qre::MakeRefCountPtr<qhwi::compressedstorage::File>(new qhwi::compressedstorage::D3dFile());
 }
 
-qhwi::ResultCode qhwi::directstorage::D3dFactory::init()
+qhwi::ResultCode qhwi::compressedstorage::D3dFactory::init()
 {
     return (DStorageGetFactory(IID_PPV_ARGS(&m_factory)) == S_OK) ? ResultCode::eSuccess : ResultCode::eUnsupported;
 }
 
-qhwi::ResultCode qhwi::directstorage::D3dFactory::openFile(const char* fileToLoad, File* file) const
+qhwi::ResultCode qhwi::compressedstorage::D3dFactory::openFile(const char* fileToLoad, File* file) const
 {
     wchar_t wFileToLoad[qhwi::MaxPathSize];
 
@@ -6164,7 +6171,7 @@ qhwi::ResultCode qhwi::directstorage::D3dFactory::openFile(const char* fileToLoa
     return (m_factory->OpenFile(wFileToLoad, IID_PPV_ARGS(static_cast<D3dFile*>(file)->getAddressOf())) == S_OK) ? ResultCode::eSuccess : ResultCode::eErrorOther;
 }
 
-void qhwi::directstorage::D3dFile::getFileInformation(FileInfo& fileInfo) const
+void qhwi::compressedstorage::D3dFile::getFileInformation(FileInfo& fileInfo) const
 {
     BY_HANDLE_FILE_INFORMATION info = {};
     m_file->GetFileInformation(&info);
@@ -6172,23 +6179,23 @@ void qhwi::directstorage::D3dFile::getFileInformation(FileInfo& fileInfo) const
     fileInfo.sizeInBytes = (static_cast<size_t>(info.nFileSizeHigh) << 32) | info.nFileSizeLow;
 }
 
-qre::RefCountPtr<qhwi::directstorage::StorageQueue> qhwi::directstorage::D3dFactory::createQueue(const qhwi::directstorage::StorageQueueDesc& desc) const
+qre::RefCountPtr<qhwi::compressedstorage::StorageQueue> qhwi::compressedstorage::D3dFactory::createQueue(const qhwi::compressedstorage::StorageQueueDesc& desc) const
 {
-    D3dStorageQueue* d3dStorageQueue = new qhwi::directstorage::D3dStorageQueue();
+    D3dStorageQueue* d3dStorageQueue = new qhwi::compressedstorage::D3dStorageQueue();
 
     DSTORAGE_QUEUE_DESC queueDesc = {};
     queueDesc.Capacity = DSTORAGE_MAX_QUEUE_CAPACITY;
     queueDesc.Device = desc.device ? static_cast<D3dDevice*>(desc.device)->get() : nullptr;
-    queueDesc.Priority = qhwi::directstorage::dstoragePriority(desc.priority);
-    queueDesc.SourceType = qhwi::directstorage::dstorageRequestSourceType(desc.sourceType);
+    queueDesc.Priority = qhwi::compressedstorage::dstoragePriority(desc.priority);
+    queueDesc.SourceType = qhwi::compressedstorage::dstorageRequestSourceType(desc.sourceType);
     queueDesc.Name = desc.name;
 
     m_factory->CreateQueue(&queueDesc, IID_PPV_ARGS(d3dStorageQueue->getAddressOf()));
 
-    return qre::MakeRefCountPtr<qhwi::directstorage::StorageQueue>(d3dStorageQueue);
+    return qre::MakeRefCountPtr<qhwi::compressedstorage::StorageQueue>(d3dStorageQueue);
 }
 
-qre::RefCountPtr<qhwi::directstorage::StorageStatusArray> qhwi::directstorage::D3dFactory::createStatusArray(uint32_t capacity, const char* name) const
+qre::RefCountPtr<qhwi::compressedstorage::StorageStatusArray> qhwi::compressedstorage::D3dFactory::createStatusArray(uint32_t capacity, const char* name) const
 {
     D3dStorageStatusArray* storageStatusArray = new D3dStorageStatusArray();
 
@@ -6198,10 +6205,10 @@ qre::RefCountPtr<qhwi::directstorage::StorageStatusArray> qhwi::directstorage::D
         storageStatusArray = nullptr;
     }
 
-    return qre::MakeRefCountPtr<qhwi::directstorage::StorageStatusArray>(storageStatusArray);
+    return qre::MakeRefCountPtr<qhwi::compressedstorage::StorageStatusArray>(storageStatusArray);
 }
 
-void qhwi::directstorage::D3dStorageQueue::enqueueRequest(const qhwi::directstorage::Request& request)
+void qhwi::compressedstorage::D3dStorageQueue::enqueueRequest(const qhwi::compressedstorage::Request& request)
 {
     DSTORAGE_REQUEST r{};
 
@@ -6213,9 +6220,9 @@ void qhwi::directstorage::D3dStorageQueue::enqueueRequest(const qhwi::directstor
 
     switch (request.sourceType)
     {
-    case qhwi::directstorage::StorageRequestSourceType::eFile:
+    case qhwi::compressedstorage::StorageRequestSourceType::eFile:
     {
-        const qhwi::directstorage::SourceFile& sourceFile = std::get<qhwi::directstorage::SourceFile>(request.source);
+        const qhwi::compressedstorage::SourceFile& sourceFile = std::get<qhwi::compressedstorage::SourceFile>(request.source);
 
         r.Source.File = {
             .Source = static_cast<const D3dFile*>(sourceFile.file)->get(),
@@ -6225,9 +6232,9 @@ void qhwi::directstorage::D3dStorageQueue::enqueueRequest(const qhwi::directstor
     }
     break;
 
-    case qhwi::directstorage::StorageRequestSourceType::eMemory:
+    case qhwi::compressedstorage::StorageRequestSourceType::eMemory:
     {
-        const qhwi::directstorage::SourceMemory& sourceMemory = std::get<qhwi::directstorage::SourceMemory>(request.source);
+        const qhwi::compressedstorage::SourceMemory& sourceMemory = std::get<qhwi::compressedstorage::SourceMemory>(request.source);
 
         r.Source.Memory = { .Source = sourceMemory.sourceMemoryPtr, .Size = static_cast<UINT32>(sourceMemory.size) };
     }
@@ -6239,34 +6246,35 @@ void qhwi::directstorage::D3dStorageQueue::enqueueRequest(const qhwi::directstor
 
     switch (request.destinationType)
     {
-    case qhwi::directstorage::StorageRequestDestinationType::eBuffer:
+    case qhwi::compressedstorage::StorageRequestDestinationType::eBuffer:
     {
-        const qhwi::directstorage::DestinationBuffer& destinationBuffer = std::get<qhwi::directstorage::DestinationBuffer>(request.destination);
+        const qhwi::compressedstorage::DestinationBuffer& destinationBuffer = std::get<qhwi::compressedstorage::DestinationBuffer>(request.destination);
 
         r.Destination.Buffer = { .Resource = static_cast<D3dBuffer*>(destinationBuffer.buffer)->get(),
                                  .Offset = destinationBuffer.offset,
                                  .Size = static_cast<UINT32>(destinationBuffer.size) };
     }
     break;
-    case qhwi::directstorage::StorageRequestDestinationType::eMemory:
+    case qhwi::compressedstorage::StorageRequestDestinationType::eMemory:
     {
-        const qhwi::directstorage::DestinationMemory& destinationMemory = std::get<qhwi::directstorage::DestinationMemory>(request.destination);
+        const qhwi::compressedstorage::DestinationMemory& destinationMemory = std::get<qhwi::compressedstorage::DestinationMemory>(request.destination);
 
         r.Destination.Memory = { .Buffer = destinationMemory.destinationMemoryPtr, .Size = static_cast<UINT32>(destinationMemory.size) };
     }
     break;
-    case qhwi::directstorage::StorageRequestDestinationType::eMutipleSubresources:
+    case qhwi::compressedstorage::StorageRequestDestinationType::eMutipleSubresources:
     {
-        const qhwi::directstorage::DestinationMultipleSubresources& destinationSubresources = std::get<qhwi::directstorage::DestinationMultipleSubresources>(request.destination);
+        const qhwi::compressedstorage::DestinationMultipleSubresources& destinationSubresources =
+            std::get<qhwi::compressedstorage::DestinationMultipleSubresources>(request.destination);
 
         r.Destination.MultipleSubresources = { .Resource = static_cast<D3dTexture*>(destinationSubresources.texture)->get(),
                                                .FirstSubresource = destinationSubresources.firstSubresource };
     }
     break;
 
-    case qhwi::directstorage::StorageRequestDestinationType::eTextureRegion:
+    case qhwi::compressedstorage::StorageRequestDestinationType::eTextureRegion:
     {
-        const qhwi::directstorage::DestinationTextureRegion& destinationTextureRegion = std::get<qhwi::directstorage::DestinationTextureRegion>(request.destination);
+        const qhwi::compressedstorage::DestinationTextureRegion& destinationTextureRegion = std::get<qhwi::compressedstorage::DestinationTextureRegion>(request.destination);
 
         D3D12_BOX region{};
         region.left = destinationTextureRegion.origin.x;
@@ -6281,7 +6289,7 @@ void qhwi::directstorage::D3dStorageQueue::enqueueRequest(const qhwi::directstor
                                   .Region = region };
     }
     break;
-    case qhwi::directstorage::StorageRequestDestinationType::eTiles:
+    case qhwi::compressedstorage::StorageRequestDestinationType::eTiles:
         QHWI_TODO();
         QHWI_FATAL("Unsupported destination type");
         break;
@@ -6293,23 +6301,23 @@ void qhwi::directstorage::D3dStorageQueue::enqueueRequest(const qhwi::directstor
     m_storageQueue->EnqueueRequest(&r);
 }
 
-void qhwi::directstorage::D3dStorageQueue::enqueueStatus(StorageStatusArray* array, uint32_t index)
+void qhwi::compressedstorage::D3dStorageQueue::enqueueStatus(StorageStatusArray* array, uint32_t index)
 {
     m_storageQueue->EnqueueStatus(static_cast<D3dStorageStatusArray*>(array)->get(), index);
 }
 
-void qhwi::directstorage::D3dStorageQueue::enqueueSignal(Fence* fence, uint64_t value)
+void qhwi::compressedstorage::D3dStorageQueue::enqueueSignal(Fence* fence, uint64_t value)
 {
     m_storageQueue->EnqueueSignal(static_cast<D3dFence*>(fence)->get(), value);
 }
 
-void qhwi::directstorage::D3dStorageQueue::submit()
+void qhwi::compressedstorage::D3dStorageQueue::submit()
 {
     m_numEnqueuedRequests = 0;
     m_storageQueue->Submit();
 }
 
-qhwi::ResultCode qhwi::directstorage::D3dStorageStatusArray::getResult(uint32_t index) const
+qhwi::ResultCode qhwi::compressedstorage::D3dStorageStatusArray::getResult(uint32_t index) const
 {
     HRESULT result = m_storageStatusArray->GetHResult(index);
 
@@ -6323,3 +6331,4 @@ qhwi::ResultCode qhwi::directstorage::D3dStorageStatusArray::getResult(uint32_t 
         return ResultCode::eErrorOther;
     }
 }
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
