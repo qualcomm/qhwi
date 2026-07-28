@@ -20,7 +20,7 @@ QHWI (Qualcomm Hardware Interface) is a modern, high performance graphics API ab
   - Optimize for tiled GPU architecture (leverage tiled memory)
   - Minimize CPU overhead
 - Support profiling
-    - Leverage Qualcomm debugging / profiling / testing tools such as Snapdragon Profiler and AdrenoRX
+    - Leverage Qualcomm debugging / profiling / testing tools such as Snapdragon Profiler
 - Simplified programming model
     - Reduced complexity compared to Vulkan or DirectX 12
 
@@ -61,10 +61,6 @@ Supports:
 - Hardware accelerated optical flow
   - Uses VK_NV_OPTICAL_FLOW extension
   - This extension is supported on various Qualcomm devices
-
-Future Work:
-- Vulkan descriptor buffers
-- HLSL Dynamic Resources
 
 ## High Level Design
 
@@ -322,6 +318,7 @@ Thanks to everyone who has contributed to QHWI, including authors listed below, 
 - Samarth Mabrukar
 - Veera Ajay Kumar Karanam
 - Wade Lutgen
+- Marcos Ibanez Matles
 
 ## Contributing
 
