@@ -27,7 +27,9 @@
 #include <d3dx12.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
-#include <dstorage.h>
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+#    include <dstorage.h>
+#endif
 #if defined(__clang__) || defined(__GNUC__)
 #    pragma clang diagnostic pop
 #endif
@@ -1298,7 +1300,9 @@ public:
 
     qre::RefCountPtr<CommandQueue> createCommandQueue(const CommandQueue::Description& desc) override;
 
-    qre::RefCountPtr<directstorage::File> createStorageFile() override;
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+    qre::RefCountPtr<compressedstorage::File> createStorageFile() override;
+#endif
 
     ext::WindowSurface* getWindowSurface() { return &m_windowSurface; }
 
@@ -1619,9 +1623,10 @@ uint64_t Fnv1a64Continue(uint64_t& hash, const D3D12_SHADER_RESOURCE_VIEW_DESC& 
 uint64_t Fnv1a64Continue(uint64_t& hash, const D3D12_DEPTH_STENCIL_VIEW_DESC& v);
 }; // namespace hash_util
 
-namespace directstorage
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+namespace compressedstorage
 {
-class D3dFile final : public qhwi::directstorage::File
+class D3dFile final : public qhwi::compressedstorage::File
 {
 public:
     ~D3dFile() { m_file->Close(); }
@@ -1638,7 +1643,7 @@ private:
     ComPtr<IDStorageFile> m_file;
 };
 
-class D3dStorageQueue final : public qhwi::directstorage::StorageQueue
+class D3dStorageQueue final : public qhwi::compressedstorage::StorageQueue
 {
 public:
     IDStorageQueue1** getAddressOf() { return m_storageQueue.GetAddressOf(); };
@@ -1682,7 +1687,8 @@ public:
 private:
     ComPtr<IDStorageFactory> m_factory = NULL;
 };
-} // namespace directstorage
+} // namespace compressedstorage
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
 } // namespace qhwi
 

@@ -764,7 +764,8 @@ enum class AccelerationStructureBuildMode
     eUpdate
 };
 
-namespace directstorage
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+namespace compressedstorage
 {
 enum class StorageRequestSourceType : uint8_t
 {
@@ -796,7 +797,8 @@ enum class CompressionFormat : uint8_t
     eCustom
 };
 
-} // namespace directstorage
+} // namespace compressedstorage
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
 } // namespace qhwi
 

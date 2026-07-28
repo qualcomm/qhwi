@@ -595,52 +595,54 @@ D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS qhwi::d3dRaytracingAccelerat
     return r;
 }
 
-DSTORAGE_REQUEST_SOURCE_TYPE qhwi::directstorage::dstorageRequestSourceType(qhwi::directstorage::StorageRequestSourceType sourceType)
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+DSTORAGE_REQUEST_SOURCE_TYPE qhwi::compressedstorage::dstorageRequestSourceType(qhwi::compressedstorage::StorageRequestSourceType sourceType)
 {
     switch (sourceType)
     {
-        CASE(qhwi::directstorage::StorageRequestSourceType::eFile, DSTORAGE_REQUEST_SOURCE_FILE);
-        CASE(qhwi::directstorage::StorageRequestSourceType::eMemory, DSTORAGE_REQUEST_SOURCE_MEMORY);
+        CASE(qhwi::compressedstorage::StorageRequestSourceType::eFile, DSTORAGE_REQUEST_SOURCE_FILE);
+        CASE(qhwi::compressedstorage::StorageRequestSourceType::eMemory, DSTORAGE_REQUEST_SOURCE_MEMORY);
     default:
         return DSTORAGE_REQUEST_SOURCE_TYPE(0);
     }
 }
 
-DSTORAGE_REQUEST_DESTINATION_TYPE qhwi::directstorage::dstorageRequestDestinationType(qhwi::directstorage::StorageRequestDestinationType destinationType)
+DSTORAGE_REQUEST_DESTINATION_TYPE qhwi::compressedstorage::dstorageRequestDestinationType(qhwi::compressedstorage::StorageRequestDestinationType destinationType)
 {
     switch (destinationType)
     {
-        CASE(qhwi::directstorage::StorageRequestDestinationType::eMemory, DSTORAGE_REQUEST_DESTINATION_MEMORY);
-        CASE(qhwi::directstorage::StorageRequestDestinationType::eBuffer, DSTORAGE_REQUEST_DESTINATION_BUFFER);
-        CASE(qhwi::directstorage::StorageRequestDestinationType::eTextureRegion, DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION);
-        CASE(qhwi::directstorage::StorageRequestDestinationType::eMutipleSubresources, DSTORAGE_REQUEST_DESTINATION_MULTIPLE_SUBRESOURCES);
-        CASE(qhwi::directstorage::StorageRequestDestinationType::eTiles, DSTORAGE_REQUEST_DESTINATION_TILES);
+        CASE(qhwi::compressedstorage::StorageRequestDestinationType::eMemory, DSTORAGE_REQUEST_DESTINATION_MEMORY);
+        CASE(qhwi::compressedstorage::StorageRequestDestinationType::eBuffer, DSTORAGE_REQUEST_DESTINATION_BUFFER);
+        CASE(qhwi::compressedstorage::StorageRequestDestinationType::eTextureRegion, DSTORAGE_REQUEST_DESTINATION_TEXTURE_REGION);
+        CASE(qhwi::compressedstorage::StorageRequestDestinationType::eMutipleSubresources, DSTORAGE_REQUEST_DESTINATION_MULTIPLE_SUBRESOURCES);
+        CASE(qhwi::compressedstorage::StorageRequestDestinationType::eTiles, DSTORAGE_REQUEST_DESTINATION_TILES);
     default:
         return DSTORAGE_REQUEST_DESTINATION_TYPE(0);
     }
 }
 
-DSTORAGE_PRIORITY qhwi::directstorage::dstoragePriority(qhwi::directstorage::StoragePriority priority)
+DSTORAGE_PRIORITY qhwi::compressedstorage::dstoragePriority(qhwi::compressedstorage::StoragePriority priority)
 {
     switch (priority)
     {
-        CASE(qhwi::directstorage::StoragePriority::eLow, DSTORAGE_PRIORITY_LOW);
-        CASE(qhwi::directstorage::StoragePriority::eNormal, DSTORAGE_PRIORITY_NORMAL);
-        CASE(qhwi::directstorage::StoragePriority::eHigh, DSTORAGE_PRIORITY_HIGH);
-        CASE(qhwi::directstorage::StoragePriority::eRealtime, DSTORAGE_PRIORITY_REALTIME);
+        CASE(qhwi::compressedstorage::StoragePriority::eLow, DSTORAGE_PRIORITY_LOW);
+        CASE(qhwi::compressedstorage::StoragePriority::eNormal, DSTORAGE_PRIORITY_NORMAL);
+        CASE(qhwi::compressedstorage::StoragePriority::eHigh, DSTORAGE_PRIORITY_HIGH);
+        CASE(qhwi::compressedstorage::StoragePriority::eRealtime, DSTORAGE_PRIORITY_REALTIME);
     default:
         return DSTORAGE_PRIORITY(0);
     }
 }
 
-DSTORAGE_COMPRESSION_FORMAT qhwi::directstorage::dstorageCompressionFormat(qhwi::directstorage::CompressionFormat format)
+DSTORAGE_COMPRESSION_FORMAT qhwi::compressedstorage::dstorageCompressionFormat(qhwi::compressedstorage::CompressionFormat format)
 {
     switch (format)
     {
-        CASE(qhwi::directstorage::CompressionFormat::eNone, DSTORAGE_COMPRESSION_FORMAT_NONE);
-        CASE(qhwi::directstorage::CompressionFormat::eGDeflate, DSTORAGE_COMPRESSION_FORMAT_GDEFLATE);
-        CASE(qhwi::directstorage::CompressionFormat::eCustom, DSTORAGE_CUSTOM_COMPRESSION_0);
+        CASE(qhwi::compressedstorage::CompressionFormat::eNone, DSTORAGE_COMPRESSION_FORMAT_NONE);
+        CASE(qhwi::compressedstorage::CompressionFormat::eGDeflate, DSTORAGE_COMPRESSION_FORMAT_GDEFLATE);
+        CASE(qhwi::compressedstorage::CompressionFormat::eCustom, DSTORAGE_CUSTOM_COMPRESSION_0);
     default:
         return DSTORAGE_COMPRESSION_FORMAT(0);
     }
 }
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE

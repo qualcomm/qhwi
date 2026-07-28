@@ -1508,7 +1508,9 @@ public:
 
     qre::RefCountPtr<CommandQueue> createCommandQueue(const CommandQueue::Description& desc) override;
 
-    qre::RefCountPtr<qhwi::directstorage::File> createStorageFile() override;
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+    qre::RefCountPtr<qhwi::compressedstorage::File> createStorageFile() override;
+#endif
 
     ext::VkSurface* getVkWindowSurface() { return &m_windowSurface; }
 
@@ -1990,7 +1992,8 @@ namespace hash_util
 uint64_t Fnv1a64Continue(uint64_t& hash, const vk::ImageViewCreateInfo& v);
 };
 
-namespace directstorage
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+namespace compressedstorage
 {
 
 class VkFile final : public File
@@ -2088,7 +2091,8 @@ private:
     VkDevice* m_device;
 };
 
-} // namespace directstorage
+} // namespace compressedstorage
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
 } // namespace qhwi
 

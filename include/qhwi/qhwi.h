@@ -122,11 +122,13 @@ class CommandList;
 class CommandQueue;
 class Device;
 
-namespace directstorage
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+namespace compressedstorage
 {
 class File;
 class Factory;
-} // namespace directstorage
+} // namespace compressedstorage
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
 struct Result
 {
@@ -4188,7 +4190,9 @@ public:
 
     virtual qre::RefCountPtr<AccelerationStructure> createAccelerationStructure(const AccelerationStructureDesc& desc) = 0;
 
-    virtual qre::RefCountPtr<directstorage::File> createStorageFile() { return nullptr; }
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+    virtual qre::RefCountPtr<compressedstorage::File> createStorageFile() { return nullptr; }
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
     qre::RefCountPtr<ComputePipeline> create(const ComputePipelineDesc& desc) { return createComputePipeline(desc); }
 
@@ -4495,7 +4499,9 @@ public:
 
     size_t getSharedSystemMemory() const { return m_sharedSystemMemory; }
 
-    const directstorage::Factory* getStorageFactory() const { return m_storageFactory; }
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+    const compressedstorage::Factory* getStorageFactory() const { return m_storageFactory; }
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
 protected:
     Context* m_context = nullptr;
@@ -4505,7 +4511,9 @@ protected:
     D3dInternalOptions m_d3dInternalOptions;
     LimitsInfo m_limitsInfo;
     RayTracingPipelineProperties m_rayTracingPipelineProperties;
-    qre::RefCountPtr<directstorage::Factory> m_storageFactory;
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+    qre::RefCountPtr<compressedstorage::Factory> m_storageFactory;
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
     size_t m_dedicatedVideoMemory = 0;
     size_t m_sharedSystemMemory = 0;
@@ -4585,7 +4593,8 @@ extern qre::RefCountPtr<Context> createContext(const ContextDesc& desc = {});
 
 extern const char* getVendorName(uint32_t id);
 
-namespace directstorage
+#ifdef QHWI_ENABLE_COMPRESSED_STORAGE
+namespace compressedstorage
 {
 class File;
 
@@ -4840,7 +4849,8 @@ public:
 
     virtual qre::RefCountPtr<StorageStatusArray> createStatusArray(uint32_t capacity = 1, const char* name = nullptr) const { return nullptr; };
 };
-} // namespace directstorage
+} // namespace compressedstorage
+#endif // QHWI_ENABLE_COMPRESSED_STORAGE
 
 } // namespace qhwi
 #endif

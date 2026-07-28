@@ -36,14 +36,19 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND WIN32 AND CMAKE_CXX_COMPILER_VERSIO
 endif()
 
 add_subdirectory(external/qre)
-add_subdirectory(external/DirectStorage/GDeflate/GDeflate)
 
-# runtimeobject.lib is Windows-only; strip it from GDeflate when building for other platforms.
-if(NOT WIN32)
-    get_target_property(_libs GDeflate INTERFACE_LINK_LIBRARIES)
-    if(_libs)
-        list(REMOVE_ITEM _libs "$<LINK_ONLY:runtimeobject.lib>")
-        set_target_properties(GDeflate PROPERTIES INTERFACE_LINK_LIBRARIES "${_libs}")
+option(QHWI_ENABLE_COMPRESSED_STORAGE "Enable DirectStorage (D3D12) and GDeflate-based tile decompression (D3D12 + Vulkan)" OFF)
+
+if(QHWI_ENABLE_COMPRESSED_STORAGE)
+    add_subdirectory(external/DirectStorage/GDeflate/GDeflate)
+
+    # runtimeobject.lib is Windows-only; strip it from GDeflate when building for other platforms.
+    if(NOT WIN32)
+        get_target_property(_libs GDeflate INTERFACE_LINK_LIBRARIES)
+        if(_libs)
+            list(REMOVE_ITEM _libs "$<LINK_ONLY:runtimeobject.lib>")
+            set_target_properties(GDeflate PROPERTIES INTERFACE_LINK_LIBRARIES "${_libs}")
+        endif()
     endif()
 endif()
 
