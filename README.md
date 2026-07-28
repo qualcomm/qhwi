@@ -1,6 +1,7 @@
 # QHWI
 
 [![License: BSD-3-Clause-Clear](https://img.shields.io/badge/License-BSD--3--Clause--Clear-blue.svg)](LICENSE.txt)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 QHWI (Qualcomm Hardware Interface) is a modern, high performance graphics API abstraction library over multiple graphics backends: *Vulkan* and *DirectX 12*.  Its primary use case is to support programming the GPU through a simplified, common interface.
 
@@ -105,6 +106,7 @@ The build system provides the following options:
 - *QHWI_BUILD_UNIT_TESTS*: build the QHWI unit tests
 - *QHWI_BUILD_EXAMPLES*: build the QHWI examples
 - *QHWI_BUILD_SHADERS*: build the QHWI shaders standalone (implied by *QHWI_BUILD_UNIT_TESTS*)
+- *QHWI_ENABLE_COMPRESSED_STORAGE*: enable fast, GPU-targeted asset loading with optional on-the-fly decompression — DirectStorage on D3D12, and Vulkan's `VK_EXT_memory_decompression` + GDeflate tile decoding on Vulkan (OFF by default; see [Compressed Storage](#compressed-storage) below)
 - *QHWI_ENABLE_QCOM_TILE_SHADING*: enable the use of `VK_QCOM_tile_shading` (requires *QHWI_ENABLE_VULKAN_BACKEND*)
 - *QHWI_ENABLE_TRACY*: enable Tracy profiling support
 - *QHWI_TRACY_GPU_BACKEND*: Tracy GPU profiling backend to use (`dx12`, `vk`, or `NONE`; requires *QHWI_ENABLE_TRACY*)
@@ -117,6 +119,15 @@ The build system provides the following options:
 The GLFW window backend is used automatically on non-Android platforms whenever unit tests or examples are built; there is no separate toggle for it.
 
 Multiple graphics backends can be enabled on some platforms (e.g. both *D3d12* and *Vulkan* can be enabled simultaneously on *Windows*)
+
+### Compressed Storage
+
+*QHWI_ENABLE_COMPRESSED_STORAGE* gates a family of APIs (`qhwi::compressedstorage::*`) for loading — and optionally decompressing — assets straight into GPU-visible memory, bypassing the regular CPU upload path. What backs it differs per graphics backend:
+
+- **D3D12**: uses Microsoft's [DirectStorage](https://github.com/microsoft/DirectStorage) runtime (`dstorage.lib`/`dstorage.h`) for the actual file I/O and queuing, with GDeflate as one of its supported decompression codecs.
+- **Vulkan**: has no DirectStorage dependency. Decompression runs via the `VK_EXT_memory_decompression` extension; only two small GDeflate header-only pieces (the `TileStream` layout and default tile size) are needed to parse the same tile-stream format DirectStorage produces, so pre-compressed assets can be shared across both backends.
+
+Both backends are exposed through the same backend-agnostic `qhwi::compressedstorage` types (`File`, `Factory`, `StorageQueue`, `Request`) — the namespace name reflects that shared abstraction rather than either vendor-specific implementation. When the option is OFF (the default), none of this code is compiled and the `external/DirectStorage` submodule is never fetched.
 
 ### Windows Build Instructions
 
@@ -282,7 +293,7 @@ These are used as-is under their respective licenses and are **not** modified by
 | [DirectStorage](https://github.com/microsoft/DirectStorage) | MIT | Microsoft DirectStorage runtime and GDeflate codec |
 | [tracy](https://github.com/wolfpld/tracy) | zlib | Frame and zone profiling instrumentation |
 | [stb_image](https://github.com/nothings/stb) | MIT / Public Domain | Single-header image loading |
-| qre | Proprietary | Qualcomm runtime engine utilities (containers, OS abstraction) |
+| [qre](https://github.com/qualcomm/qre) | BSD-3-Clause-Clear | Qualcomm runtime engine utilities (containers, OS abstraction) |
 
 See each submodule's own `LICENSE` or `LICENSE.txt` for the full license text.
 
@@ -300,6 +311,7 @@ Thanks to everyone who has contributed to QHWI, including authors listed below, 
 - Juraj Obert
 - Kashyap Rajpal
 - Luka Pandza
+- Marcos Ibanez Matles
 - Mark Feldman
 - Mark Golden
 - Mauricio Maurer
@@ -310,3 +322,13 @@ Thanks to everyone who has contributed to QHWI, including authors listed below, 
 - Samarth Mabrukar
 - Veera Ajay Kumar Karanam
 - Wade Lutgen
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to submit pull requests, build the project locally, and adhere to our coding standards.
+
+Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project, you agree to abide by its terms.
+
+## License
+
+This project is licensed under the BSD-3-Clause-Clear License. See [LICENSE.txt](LICENSE.txt) for details.
