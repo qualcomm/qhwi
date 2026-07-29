@@ -1,3 +1,12 @@
+//
+//
+//  compute1.hlsl
+//  QHWI
+//
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+//
+
 [[vk::tile_attachment_qcom]]
 [[vk::binding(1)]]
 RWTexture2D<float4> color0;

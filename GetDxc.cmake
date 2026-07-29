@@ -1,3 +1,11 @@
+#
+#  GetDxc.cmake
+#  qhwi
+#
+#  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+#  SPDX-License-Identifier: BSD-3-Clause-Clear
+#
+
 include(${CMAKE_CURRENT_LIST_DIR}/external/qre/DownloadFileUtil.cmake)
 
 function(get_dxc)

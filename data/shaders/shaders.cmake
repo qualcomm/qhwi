@@ -1,3 +1,11 @@
+#
+#  shaders.cmake
+#  qhwi
+#
+#  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+#  SPDX-License-Identifier: BSD-3-Clause-Clear
+#
+
 cmake_path(SET VULKAN_SDK $<IF:$<BOOL:${QHWI_ENABLE_VULKAN_BACKEND}>,$ENV{VULKAN_SDK},"">)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Android")

@@ -1,3 +1,12 @@
+//
+//
+//  testSpecializationConstants.hlsl
+//  QHWI
+//
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+//
+
 struct VSInput
 {
     float2 pos : POSITION0;

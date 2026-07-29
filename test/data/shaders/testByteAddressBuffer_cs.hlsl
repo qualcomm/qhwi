@@ -1,3 +1,12 @@
+//
+//
+//  testByteAddressBuffer_cs.hlsl
+//  QHWI
+//
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+//
+
 ByteAddressBuffer  inBuffer  : register(t0);
 RWStructuredBuffer<uint4> outBuffer : register(u0);
 

@@ -1,3 +1,12 @@
+//
+//
+//  frag2.hlsl
+//  QHWI
+//
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+//
+
 Texture2D<float4> tex : register(t0);
 SamplerState tex_sampler : register(s2);
 
