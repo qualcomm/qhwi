@@ -17,8 +17,8 @@ jobs:
   build-windows-msvc:
     name: Build / Windows (MSVC)
     runs-on: windows-2022
-    # Disabled: external/qre and test/ref submodules point to Qualcomm-internal
-    # repos that aren't reachable from public CI runners ("Repository not found").
+    # Disabled: external/qre and test/ref submodules are not yet publicly
+    # accessible, so they aren't reachable from public CI runners.
     # Re-enable once those repos are made public (or the submodules are repointed).
     if: false
     steps:
@@ -166,7 +166,7 @@ jobs:
           done
 
   # ---------------------------------------------------------------------------
-  # Format check — clang-format dry run (mirrors Jenkins auto-formatter job)
+  # Format check — clang-format dry run (mirrors the internal auto-formatter job)
   # Uses clang-format-18; requires 16+ for InsertBraces and RemoveSemicolon.
   # ---------------------------------------------------------------------------
   format-check:
