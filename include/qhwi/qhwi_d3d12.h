@@ -627,7 +627,9 @@ public:
     struct Description
     {
         Description(const RayTracingPipelineDesc& desc)
-            : base(desc){};
+            : base(desc)
+        {
+        }
 
         RayTracingPipelineDesc base;
     };
@@ -1114,7 +1116,7 @@ private:
 class D3dTimerQueryHeap final : public QueryHeap
 {
 public:
-    ~D3dTimerQueryHeap(){};
+    ~D3dTimerQueryHeap() {};
 
     void destroy() { queryDataResolveBuffer.Get()->Release(); };
 

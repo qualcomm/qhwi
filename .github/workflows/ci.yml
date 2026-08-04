@@ -17,8 +17,8 @@ jobs:
   build-windows-msvc:
     name: Build / Windows (MSVC)
     runs-on: windows-2022
-    # Disabled: external/qre and test/ref submodules point to Qualcomm-internal
-    # repos that aren't reachable from public CI runners ("Repository not found").
+    # Disabled: external/qre and test/ref submodules are not yet publicly
+    # accessible, so they aren't reachable from public CI runners.
     # Re-enable once those repos are made public (or the submodules are repointed).
     if: false
     steps:
@@ -166,8 +166,8 @@ jobs:
           done
 
   # ---------------------------------------------------------------------------
-  # Format check — clang-format dry run (mirrors Jenkins auto-formatter job)
-  # Uses clang-format-18; requires 16+ for InsertBraces and RemoveSemicolon.
+  # Format check — clang-format dry run
+  # Uses clang-format-19; requires 16+ for InsertBraces and RemoveSemicolon.
   # ---------------------------------------------------------------------------
   format-check:
     name: Format Check
@@ -175,13 +175,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install clang-format-18
+      - name: Install clang-format-19
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-format-18
+          sudo apt-get install -y clang-format-19
 
       - name: Check formatting
         run: |
           find . \( -path ./external -o -path ./build \) -prune -o \
             \( -name "*.cpp" -o -name "*.h" \) \
-            -print0 | xargs -0 clang-format-18 --dry-run -Werror
+            -print0 | xargs -0 clang-format-19 --dry-run -Werror

@@ -1,3 +1,11 @@
+#
+#  tests.cmake
+#  qhwi
+#
+#  Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+#  SPDX-License-Identifier: BSD-3-Clause-Clear
+#
+
 add_qhwi_test(image_compare_eR8Unorm)
 add_qhwi_test(image_compare_eRg8Unorm)
 add_qhwi_test(image_compare_eRgba8Unorm)

@@ -1,3 +1,12 @@
+//
+//
+//  testDispatchIndirectFillValue_cs.hlsl
+//  QHWI
+//
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+//
+
 RWStructuredBuffer<uint> outBuffer : register(u0);
 
 struct cBuffer

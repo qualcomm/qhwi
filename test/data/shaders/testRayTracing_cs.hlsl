@@ -1,3 +1,12 @@
+//
+//
+//  testRayTracing_cs.hlsl
+//  QHWI
+//
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+//
+
 #define FLT_MIN 1.175494351e-38F
 #define FLT_MAX 3.402823466e+38F
 

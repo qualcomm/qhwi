@@ -1,3 +1,12 @@
+//
+//
+//  vert1.hlsl
+//  QHWI
+//
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+//
+
 static float4 gl_Position;
 static float4 position;
 static float2 texcoord;
