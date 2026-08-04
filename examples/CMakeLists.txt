@@ -52,8 +52,12 @@ function(add_qhwi_example name)
         file(COPY ${VK_VALIDATION_LAYER_PREBUILT_LIBRARY_DIR}/${ANDROID_ABI}/libVkLayer_khronos_validation.so
             DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/jniLibs/${ANDROID_ABI})
         if (QHWI_ENABLE_PIL)
-            file(COPY "${PIL_BINARY_DIR}/libQProfilerInterface.so"
-                DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/jniLibs/${ANDROID_ABI}")
+            if(EXISTS "${PIL_BINARY_DIR}/libQProfilerInterface.so")
+                file(COPY "${PIL_BINARY_DIR}/libQProfilerInterface.so"
+                    DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/jniLibs/${ANDROID_ABI}")
+            else()
+                message(WARNING "PIL library not found at ${PIL_BINARY_DIR}/libQProfilerInterface.so - skipping copy")
+            endif()
         endif()
     else()
         add_executable(${name} ${QHWI_EXAMPLE_SOURCE_FILES} ${QHWI_EXAMPLE_SHADER_FILES})
