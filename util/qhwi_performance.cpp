@@ -680,9 +680,7 @@ void qhwi_performance::PerformanceLogManager::Initialize(qhwi::Device* device, c
 #    if defined(QHWI_PLATFORM_LINUX)
             hostOsName = "LINUX";
 
-            struct sysinfo sysInfo
-            {
-            };
+            struct sysinfo sysInfo{};
 
             sysinfo(&sysInfo);
             totalMemoryInKilobytes = sysInfo.totalram >> 10u;
@@ -690,9 +688,7 @@ void qhwi_performance::PerformanceLogManager::Initialize(qhwi::Device* device, c
 #    elif defined(QHWI_PLATFORM_ANDROID)
             hostOsName = "ANDROID";
 
-            struct sysinfo sysInfo
-            {
-            };
+            struct sysinfo sysInfo{};
 
             sysinfo(&sysInfo);
             totalMemoryInKilobytes = sysInfo.totalram >> 10u;
