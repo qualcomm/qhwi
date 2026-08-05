@@ -265,17 +265,6 @@ adb shell "rm /sdcard/Android/data/com.qualcomm.qhwi_test/files/../config.txt"
 
 **Runtime:** SDP must be running on the host (or connected Android device) for PIL metrics to be available. SDP is available from QPM: [Snapdragon® Profiler](https://qpm.qualcomm.com/#/main/tools/details/SnapdragonProfiler)
 
-## [PIX](https://devblogs.microsoft.com/pix/download/)
-
-- PIX is a third-party tool developed by Microsoft that supports capture *and profiling* of D3d12 draw calls
-- Advantages
-  - Supports profiling
-  - Supports shader debugging
-  - supports latest features of DX12 Ultimate, including mesh shaders
-- Disadvantages
-  - Need to run the trace on the GPU in order to analyze it
-  - More difficult to compare multiple trace files, since it requires multiple GPUs
-
 ## Third-party Dependencies
 
 QHWI bundles the following third-party libraries as git submodules under `external/`.
