@@ -124,10 +124,6 @@ endif()
 
 include(util/get_pil.cmake)
 
-if (PIL_INCLUDE_DIR)
-    set(QHWI_ENABLE_PIL ON)
-endif()
-
 include(qhwi_lib.cmake)
 
 # Include Tracy profiling support
