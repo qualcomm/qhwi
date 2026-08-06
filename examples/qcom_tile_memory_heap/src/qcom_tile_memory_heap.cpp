@@ -65,6 +65,11 @@ void BlitTextureTask2D::initPipeline()
     m_computePipeline = m_device->createComputePipeline(ComputePipelineDesc().setName("blit").setLayout(m_computePipelineLayout.Get()).setComputeShader(m_cs.shader));
 }
 
+QcomTileMemoryHeapExample::~QcomTileMemoryHeapExample()
+{
+    shutdown();
+}
+
 ResultCode QcomTileMemoryHeapExample::init(int argc, const char* const* argv)
 {
     cxxopts::Options opts("QcomTileMemoryHeapExample", "Run QCOM tile_memory_heap example");

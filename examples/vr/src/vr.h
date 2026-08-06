@@ -161,7 +161,7 @@ using VrD3d12SwapchainDesc = VrD3d12Swapchain::Description;
 class VrExample
 {
 public:
-    virtual ~VrExample() {}
+    virtual ~VrExample();
 #ifdef QHWI_PLATFORM_ANDROID
     void init(android_app* app);
 #endif

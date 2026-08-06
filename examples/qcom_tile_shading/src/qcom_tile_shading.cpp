@@ -23,6 +23,11 @@ using namespace qhwi_android_util;
 // TODO: enable HLSL when dxc supports QCOM_Tile_Shading
 #define SHADER_TYPE "glsl"
 
+QCOMTileShadingExample::~QCOMTileShadingExample()
+{
+    shutdown();
+}
+
 ResultCode QCOMTileShadingExample::init(int argc, const char* const* argv)
 {
 

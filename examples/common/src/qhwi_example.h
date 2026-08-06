@@ -7,9 +7,13 @@
 //  SPDX-License-Identifier: BSD-3-Clause-Clear
 //
 
+#include <atomic>
 #include <chrono>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <unordered_map>
+#include <vector>
 #include <cxxopts.hpp>
 #include "qhwi/qhwi.h"
 #include <qhwi_performance.h>
@@ -57,7 +61,7 @@ public:
 
     void runIteration();
 
-    bool isDone() const { return m_numFrames > 0 && m_lifetimeFrameCount >= m_numFrames; }
+    bool isDone() const { return m_numFrames > 0 && m_measuredFrameCount >= m_numFrames; }
 
     virtual ~Example();
 
@@ -73,6 +77,10 @@ protected:
     virtual void onStatsUpdated(const FrameStats& stats);
 
     virtual std::span<const char* const> pilMetrics() const { return {}; }
+
+    // Must be called first in every derived class destructor to ensure the GPU is idle
+    // before derived members are destroyed.
+    void shutdown();
 
     void beginTransfer();
     void endTransfer() const;
@@ -106,14 +114,20 @@ protected:
     int m_statsFrameCount = 0;
     float m_statsAccumMs = 0.0f;
     std::chrono::steady_clock::time_point m_statsLastFrameTime;
-    bool m_statsInitialized = false;
 
     int m_lifetimeFrameCount = 0;
-    float m_lifetimeTotalMs = 0.0f;
+    int m_measuredFrameCount = 0;
+    std::chrono::nanoseconds m_lifetimeDuration{};
     int m_numFrames = 0;
 
+    static constexpr int kWarmupFrames = 30;
+
     qhwi_metrics::RealtimeMetrics m_pil;
-    bool m_pilActive = false;
+    std::atomic<bool> m_pilRunning = false;
+    std::thread m_pilThread;
+    std::mutex m_pilValuesMutex;
+    std::vector<qhwi_metrics::RealtimeMetricID> m_pilSelectedIds;
+    std::unordered_map<uint32_t, double> m_pilValuesCache;
     std::unordered_map<uint32_t, std::string> m_pilMetricNames;
     std::unordered_map<std::string, std::pair<double, int>> m_lifetimePilAccum;
 };

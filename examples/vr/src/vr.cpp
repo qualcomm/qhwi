@@ -66,6 +66,12 @@ static std::vector<std::string> split(const std::string& str)
     return v;
 }
 
+VrExample::~VrExample()
+{
+    if (m_primaryCommandQueue)
+        m_primaryCommandQueue->waitForIdle();
+}
+
 void VrExample::initXrLoader()
 {
     PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR = nullptr;
