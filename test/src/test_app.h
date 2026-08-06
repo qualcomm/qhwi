@@ -16,6 +16,7 @@ class TestApp
 public:
     TestApp(int argc, const char* const* argv);
     std::vector<std::unique_ptr<UnitTest>> tests;
+    std::string gtestOutputPath;
 
 private:
     cxxopts::ParseResult params;
