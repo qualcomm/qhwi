@@ -16,6 +16,7 @@ namespace qhwi
 class QcomMultiViewExample : public Example
 {
 public:
+    ~QcomMultiViewExample() override;
     ResultCode init(int argc, const char* const* argv);
 
 protected:
@@ -30,8 +31,6 @@ protected:
     }
 
 private:
-    void initCmdLineOpts(cxxopts::Options& opts);
-    void parse(int argc, const char* const* argv, cxxopts::Options& opts, cxxopts::ParseResult& p, Config& c);
     void recordCommandList(CommandList* commandList) override;
     void beginMultiViewRenderPass(qhwi::CommandList* cmdList);
     Config m_config;

@@ -9,6 +9,7 @@
 
 #include <chrono>
 #include <thread>
+#include <vector>
 
 #ifdef QHWI_PLATFORM_ANDROID
 #    include <qhwi_android_util.h>
@@ -302,10 +303,8 @@ void QCOMImageProcExample::loadImageData()
         int w = m_thumbWidth * 16;
         int h = m_thumbHeight * 16;
 
-        uint32_t* dataProcedural = nullptr;
-
         // Generate test data algorithmically
-        dataProcedural = new uint32_t[w * h];
+        std::vector<uint32_t> dataProcedural(w * h);
         const float cx = 0.5f * float(w) - 0.5f;
         const float cy = 0.5f * float(h) - 0.5f;
         const float rScale = 1.0f / float(w);
@@ -324,8 +323,7 @@ void QCOMImageProcExample::loadImageData()
 
         m_textureArray[0].init(m_device.Get(),
                                { .w = uint32_t(w), .h = uint32_t(h), .format = Format::eRgba8Unorm, .name = "textureInput", .automaticBarriers = true },
-                               dataProcedural);
-        delete[] dataProcedural;
+                               dataProcedural.data());
     }
 }
 
@@ -536,6 +534,11 @@ void QCOMImageProcExample::createThumbs()
                 m_device->createDescriptorSet(DescriptorSetDesc(m_descriptorSetLayoutDrawImage).addTexture(0, m_textureThumbs[j][i].texture).addSampler(0, m_samplerTexImage));
         }
     }
+}
+
+QCOMImageProcExample::~QCOMImageProcExample()
+{
+    shutdown();
 }
 
 // ------------------------------------------------------------------------------------------------------------------------

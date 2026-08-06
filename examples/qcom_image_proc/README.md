@@ -28,8 +28,11 @@ cmake --build build --target qhwi_example_qcom_image_proc
 
 ### Command Line Parameters
 
+See [README.md](../README.md) for shared arguments available to all examples.
+
 | Parameter | Description | Values | Default |
 |-----------|-------------|--------|---------|
+| `--use-ext` | Use VK_QCOM_image_processing extension when available | `true`, `false` | `true` |
 | `--kernel-type` | Filter kernel type | 0=Triangle, 1=Gaussian, 2=Mitchell-Netravali | 1 (Gaussian) |
 | `--kernel-dim` | Dimensions of kernel (weight) texture | 2-16 | 9 |
 | `--downscale-factor` | Width/height divisor at each downsampling step | 2-16 | 4 |

@@ -76,6 +76,9 @@ ResultCode Example::init(const char* name, Config* config)
 
     if (config->enablePilMetrics)
     {
+        // Phase 1 (main thread): enumerate available metrics and select by key, then shut down.
+        // PIL binds its EGL state to whichever thread calls Init(), so we must shut down here
+        // before the worker thread calls Init() and takes ownership.
         auto rc = m_pil.Init();
         if (rc == qhwi_metrics::ResultCode::eSuccess)
         {
@@ -85,55 +88,80 @@ ResultCode Example::init(const char* name, Config* config)
             if (count > 0)
             {
                 const auto allowed = pilMetrics();
-
-                std::vector<qhwi_metrics::RealtimeMetricID> ids;
                 for (size_t i = 0; i < count; ++i)
                 {
                     const char* key = available[i].key ? available[i].key : "";
                     const char* name = available[i].name ? available[i].name : key;
-
-                    bool match = false;
                     for (const char* k : allowed)
                     {
                         if (strcmp(key, k) == 0)
                         {
-                            match = true;
+                            m_pilMetricNames[available[i].metricId] = std::string(name) + " [" + key + "]";
+                            m_pilSelectedIds.push_back(available[i].metricId);
+                            QHWI_LOGI("[pil] monitoring: %s [%s]", name, key);
                             break;
                         }
                     }
-                    if (!match)
-                    {
-                        continue;
-                    }
-
-                    m_pilMetricNames[available[i].metricId] = std::string(name) + " [" + key + "]";
-                    ids.push_back(available[i].metricId);
-                    QHWI_LOGI("[pil] monitoring: %s [%s]", name, key);
-                }
-
-                const qhwi_metrics::RealtimeMetricID* unavailable = nullptr;
-                size_t numUnavailable = 0;
-                rc = m_pil.StartRealtimeMonitor(ids.data(), ids.size(), &unavailable, &numUnavailable);
-                if (rc == qhwi_metrics::ResultCode::eSuccess)
-                {
-                    m_pilActive = true;
-                }
-                else
-                {
-                    QHWI_LOGI("[pil] StartRealtimeMonitor failed (result=%d)", static_cast<int>(rc));
                 }
             }
             else
             {
                 QHWI_LOGI("[pil] no metrics available");
             }
+            m_pil.Shutdown(); // Must precede worker Init()
         }
         else
         {
             QHWI_LOGI("[pil] Init failed (result=%d)", static_cast<int>(rc));
         }
+
+        // Phase 2: spawn worker thread that owns PIL exclusively from here on.
+        if (!m_pilSelectedIds.empty())
+        {
+            m_pilRunning = true;
+            m_pilThread = std::thread(
+                [this]()
+                {
+                    auto rc = m_pil.Init();
+                    if (rc != qhwi_metrics::ResultCode::eSuccess)
+                    {
+                        QHWI_LOGI("[pil] worker Init failed (result=%d)", static_cast<int>(rc));
+                        m_pilRunning = false;
+                        return;
+                    }
+                    const qhwi_metrics::RealtimeMetricID* unavailable = nullptr;
+                    size_t numUnavailable = 0;
+                    rc = m_pil.StartRealtimeMonitor(m_pilSelectedIds.data(), m_pilSelectedIds.size(), &unavailable, &numUnavailable);
+                    if (rc != qhwi_metrics::ResultCode::eSuccess)
+                    {
+                        QHWI_LOGI("[pil] StartRealtimeMonitor failed (result=%d)", static_cast<int>(rc));
+                        m_pil.Shutdown();
+                        m_pilRunning = false;
+                        return;
+                    }
+                    while (m_pilRunning)
+                    {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                        if (!m_pilRunning)
+                        {
+                            break;
+                        }
+                        const qhwi_metrics::RealtimeData* values = nullptr;
+                        size_t count = 0;
+                        m_pil.GetRealtimeValues(&values, &count);
+                        std::lock_guard lock(m_pilValuesMutex);
+                        for (size_t i = 0; i < count; ++i)
+                        {
+                            m_pilValuesCache[values[i].metricId] = values[i].value;
+                        }
+                    }
+                    m_pil.StopRealtimeMonitor();
+                    m_pil.Shutdown();
+                });
+        }
     }
 
+    m_statsLastFrameTime = std::chrono::steady_clock::now();
     return ResultCode::eSuccess;
 }
 
@@ -214,24 +242,31 @@ void Example::endRenderPass(qhwi::CommandList* cmdList) const
 
 void Example::onStatsUpdated(const FrameStats& stats) {}
 
-Example::~Example()
+void Example::shutdown()
 {
     if (m_commandQueue)
     {
         m_commandQueue->waitForIdle();
     }
+}
 
-    if (m_pilActive)
+Example::~Example()
+{
+    if (m_pilRunning)
     {
-        m_pil.StopRealtimeMonitor();
-        m_pil.Shutdown();
+        m_pilRunning = false;
+        if (m_pilThread.joinable())
+        {
+            m_pilThread.join();
+        }
     }
-    if (m_lifetimeFrameCount > 0)
+    if (m_measuredFrameCount > 0 && m_lifetimeDuration > std::chrono::nanoseconds::zero())
     {
-        const float avgFps = float(m_lifetimeFrameCount) * 1000.0f / m_lifetimeTotalMs;
-        const float avgFrameMs = m_lifetimeTotalMs / float(m_lifetimeFrameCount);
-        const float durationSec = m_lifetimeTotalMs / 1000.0f;
-        QHWI_LOGI("[stats] frames: %d  duration: %.1fs  avg FPS: %.1f  avg frame: %.2fms", m_lifetimeFrameCount, durationSec, avgFps, avgFrameMs);
+        const float totalMs = std::chrono::duration<float, std::milli>(m_lifetimeDuration).count();
+        const float avgFps = float(m_measuredFrameCount) * 1000.0f / totalMs;
+        const float avgFrameMs = totalMs / float(m_measuredFrameCount);
+        const float durationSec = totalMs / 1000.0f;
+        QHWI_LOGI("[stats] frames: %d  duration: %.1fs  avg FPS: %.1f  avg frame: %.2fms", m_measuredFrameCount, durationSec, avgFps, avgFrameMs);
         for (const auto& [name, acc] : m_lifetimePilAccum)
         {
             if (acc.second > 0)
@@ -253,14 +288,15 @@ void Example::recordCommandList(CommandList* commandList)
 void Example::runIteration()
 {
     const auto now = std::chrono::steady_clock::now();
-    if (m_statsInitialized)
+    m_lifetimeFrameCount++;
+    if (m_lifetimeFrameCount > kWarmupFrames)
     {
         const float frameMs = std::chrono::duration<float, std::milli>(now - m_statsLastFrameTime).count();
 
+        m_measuredFrameCount++;
         m_statsAccumMs += frameMs;
         m_statsFrameCount++;
-        m_lifetimeFrameCount++;
-        m_lifetimeTotalMs += frameMs;
+        m_lifetimeDuration += now - m_statsLastFrameTime;
         if (m_statsAccumMs >= 1000.0f)
         {
             FrameStats stats;
@@ -268,17 +304,15 @@ void Example::runIteration()
             stats.frameTimeMs = m_statsAccumMs / static_cast<float>(m_statsFrameCount);
             stats.dedicatedVideoMemoryBytes = m_device->getDedicatedVideoMemory();
             stats.sharedSystemMemoryBytes = m_device->getSharedSystemMemory();
-            if (m_pilActive)
+            if (m_pilRunning)
             {
-                const qhwi_metrics::RealtimeData* values = nullptr;
-                size_t count = 0;
-                m_pil.GetRealtimeValues(&values, &count);
-                for (size_t i = 0; i < count; ++i)
+                std::lock_guard lock(m_pilValuesMutex);
+                for (const auto& [id, value] : m_pilValuesCache)
                 {
-                    auto it = m_pilMetricNames.find(values[i].metricId);
+                    auto it = m_pilMetricNames.find(id);
                     if (it != m_pilMetricNames.end())
                     {
-                        stats.realtimeMetrics[it->second] = values[i].value;
+                        stats.realtimeMetrics[it->second] = value;
                     }
                 }
                 for (const auto& [name, value] : stats.realtimeMetrics)
@@ -293,7 +327,6 @@ void Example::runIteration()
             m_statsAccumMs = 0.0f;
         }
     }
-    m_statsInitialized = true;
     m_statsLastFrameTime = now;
 
     m_currentCommandListIndex = nextCommandListIndex();
