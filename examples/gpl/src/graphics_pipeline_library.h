@@ -62,6 +62,7 @@ public:
         bool useSmallViewport = false;
     };
 
+    ~GraphicsPipelineLibraryExample() override;
     ResultCode init(int argc, const char* const* argv);
 
 protected:

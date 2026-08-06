@@ -165,7 +165,11 @@ public:
     }
 
 protected:
-    qhwi::ResultCode init() override { return qhwi::ResultCode::eSuccess; }
+    qhwi::ResultCode init() override
+    {
+        m_isInitialized = true;
+        return qhwi::ResultCode::eSuccess;
+    }
 };
 
 #define CREATE_IMAGE_COMPARE_TEST(format)                                                                                                                                          \

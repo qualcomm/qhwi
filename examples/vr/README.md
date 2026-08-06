@@ -28,11 +28,12 @@ This example showcases VR rendering using OpenXR, the open standard for VR and A
 
 The example supports both Vulkan and DirectX 12 graphics backends, making it one of the few examples that is not limited to a single backend.
 
-## Command Line Options
+## Command Line Parameters
 
-You can specify the graphics backend using the `--backend` parameter:
-- `--backend=vk` for Vulkan (default on Linux/Android)
-- `--backend=d3d12` for DirectX 12 (default on Windows)
+| Parameter | Description | Values | Default |
+|-----------|-------------|--------|---------|
+| `--backend` | Graphics backend | `vk`, `d3d12` | `d3d12` (Windows), `vk` (Linux/Android) |
+| `--debug` | Enable debug layer | `true`, `false` | `true` (debug), `false` (release) |
 
 ## Running the Example
 

@@ -25,12 +25,17 @@ using namespace qhwi_android_util;
 #include <qre/text/textutil.h>
 using namespace test_util;
 
+QcomMultiViewExample::~QcomMultiViewExample()
+{
+    shutdown();
+}
+
 ResultCode QcomMultiViewExample::init(int argc, const char* const* argv)
 {
     cxxopts::Options opts("QcomMultiViewExample", "Run QCOM multiview example");
-    initCmdLineOpts(opts);
+    Example::initCmdLineOpts(opts);
     cxxopts::ParseResult parseResult;
-    parse(argc, argv, opts, parseResult, m_config);
+    Example::parse(argc, argv, opts, parseResult, m_config);
 
     Example::init("QcomMultiViewExample", &m_config);
 
@@ -69,16 +74,6 @@ ResultCode QcomMultiViewExample::init(int argc, const char* const* argv)
     endTransfer();
 
     return ResultCode::eSuccess;
-}
-
-void QcomMultiViewExample::initCmdLineOpts(cxxopts::Options& opts)
-{
-    Example::initCmdLineOpts(opts);
-}
-
-void QcomMultiViewExample::parse(int argc, const char* const* argv, cxxopts::Options& opts, cxxopts::ParseResult& p, Config& c)
-{
-    Example::parse(argc, argv, opts, p, c);
 }
 
 void QcomMultiViewExample::beginMultiViewRenderPass(qhwi::CommandList* cmdList)

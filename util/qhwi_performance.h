@@ -174,18 +174,18 @@ public:
     void SetLogFilePath(const char* filepath);
     bool Create(const char* pVersion,
                 const char* pCommitHash,
-                std::string filename,
+                const std::string& filename,
                 const uint64_t* pFrameCount,
                 uint64_t warmupFrames,
                 bool showRegisteredMetrics,
                 qre::BumpAllocator* pBumpAllocator);
     void Initialize(qhwi::Device* device, const char* deviceName, qhwi::CommandQueue* commandQueue);
-    PLMMetricID RegisterMetric(std::string clientName,
-                               std::string metricName,
+    PLMMetricID RegisterMetric(const std::string& clientName,
+                               const std::string& metricName,
                                PLMMetricType metricType,
                                PLMMetricUnit unit,
-                               std::string metricDescription,
-                               std::string category,
+                               const std::string& metricDescription,
+                               const std::string& category,
                                int frequency = 1,
                                PLMMetricAggregate aggregateType = PLMMetricAggregate::eSum,
                                uint32_t shaderBasedMetricID = 0);
@@ -231,8 +231,8 @@ private:
         float m_unitMultiplier = 0.f;
         unsigned int m_metricID = 0;
         int m_frequency = 0;
-        bool m_isActive = false;
         uint64_t* m_metricCount = 0;
+        bool m_isActive = false;
         uint32_t m_shaderBasedMetricIndex = 0;
     };
 
@@ -241,14 +241,14 @@ private:
         MetricEntry() = delete;
 
         MetricEntry(uint32_t metricID, uint64_t frameID, float value)
-            : m_metricID(metricID)
-            , m_frameID(frameID)
+            : m_frameID(frameID)
+            , m_metricID(metricID)
             , m_value(value)
         {
         }
 
-        PLMMetricID m_metricID; ///< Metric ID
         uint64_t m_frameID;     ///< FrameID
+        PLMMetricID m_metricID; ///< Metric ID
         float m_value;          ///< Value
     };
 
@@ -265,13 +265,13 @@ private:
         MetricTracker() = delete;
 
         MetricTracker(uint32_t metricID, uint64_t frameID, qhwi::CommandList* commandList, MetricType metricType, uint32_t shaderMetricReadbackBufferID)
-            : m_metricID(metricID)
-            , m_timerQuery()
-            , m_frameID(frameID)
-            , m_value(0)
+            : m_timerQuery()
             , m_commandList(commandList)
+            , m_frameID(frameID)
             , m_cpuTimerStart(0)
             , m_cpuTimerEnd(0)
+            , m_metricID(metricID)
+            , m_value(0)
             , m_metricType(metricType)
             , m_shaderMetricReadbackBufferID(shaderMetricReadbackBufferID)
         {
@@ -331,13 +331,13 @@ private:
         uint32_t GetShaderMetricReadbackBufferID() const { return m_shaderMetricReadbackBufferID; }
 
     private:
-        uint32_t m_metricID;
         qre::RefCountPtr<qhwi::TimerQuery> m_timerQuery;
-        uint64_t m_frameID;
-        float m_value;
         qhwi::CommandList* m_commandList;
+        uint64_t m_frameID;
         uint64_t m_cpuTimerStart;
         uint64_t m_cpuTimerEnd;
+        uint32_t m_metricID;
+        float m_value;
         MetricType m_metricType;
         uint32_t m_shaderMetricReadbackBufferID;
     };

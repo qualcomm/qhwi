@@ -58,59 +58,59 @@ struct ANativeWindow;
 
 namespace qhwi
 {
-const int MaxStringSize = 128;
-const int MaxPathSize = 1024;
-const int MaxSemanticNameSize = 32;
-const int MaxColorAttachments = 8;
-const int MaxResolveAttachments = MaxColorAttachments;
-const int MaxSubpasses = 8;
-const int MaxSubpassInputAttachments = 4;
-const int MaxAttachments = 2 * (MaxColorAttachments + 1);
-const int MaxDependencies = 16;
-const int MaxCommandLists = 16;
-const int MaxDescriptorHeapDescriptors = 65536;
-const int MaxCbvDescriptors = 4096;
-const int MaxSrvDescriptors = 4096;
-const int MaxUavDescriptors = 4096;
-const int MaxSamplerDescriptors = 1024;
-const int MaxDsvDescriptors = 4096;
-const int MaxRtvDescriptors = 4096;
-const int MaxDescriptorHeaps = 1024;
-const int MaxDescriptorSetLayoutsPerPipeline = 16;
-const int MaxDescriptorSetsPerPipeline = MaxDescriptorSetLayoutsPerPipeline;
-const int MaxDescriptorSets = 2048;
-const int MaxDescriptorSetLayoutBindings = 32;
-const int MaxDescriptorSetWrites = 128;
-const int MaxSwapchainImages = 5;
-[[deprecated]] const int MaxSwapchainBuffers = MaxSwapchainImages;
-const int MaxDevices = 8;
-const int MaxSurfaceFormats = 1024;
-const int MaxColorSpaces = 32;
-const int MaxVertexShaderInputAttributes = 32;
-const int MaxVertexShaderInputBindings = MaxVertexShaderInputAttributes;
-const int MaxShaderStages = 8;
-const int MaxPushConstantRanges = 4;
-const int MaxPushConstantSize = 128;
-const int MaxPipelineDynamicStates = 1024;
-const int MaxRayPipelineShaderStages = 128;
-const int MaxRayPipelineShaderGroups = 128;
-const int MaxSubresources = 1024;
-const int MaxShaderResourceViews = 32;
-const int MaxUnorderedAccessViews = 32;
-const int MaxRenderTargetViews = 32;
-const int MaxDepthStencilViews = 32;
-const int MaxTimerQueries = 1024;
-const int MaxTimerQueryHeapSize = MaxTimerQueries << 1;
-const int MaxCommandListResources = 1024;
-const int MaxBarriers = 1024;
-const int MaxDynamicOffsets = 4;
+constexpr int MaxStringSize = 128;
+constexpr int MaxPathSize = 1024;
+constexpr int MaxSemanticNameSize = 32;
+constexpr int MaxColorAttachments = 8;
+constexpr int MaxResolveAttachments = MaxColorAttachments;
+constexpr int MaxSubpasses = 8;
+constexpr int MaxSubpassInputAttachments = 4;
+constexpr int MaxAttachments = 2 * (MaxColorAttachments + 1);
+constexpr int MaxDependencies = 16;
+constexpr int MaxCommandLists = 16;
+constexpr int MaxDescriptorHeapDescriptors = 65536;
+constexpr int MaxCbvDescriptors = 4096;
+constexpr int MaxSrvDescriptors = 4096;
+constexpr int MaxUavDescriptors = 4096;
+constexpr int MaxSamplerDescriptors = 1024;
+constexpr int MaxDsvDescriptors = 4096;
+constexpr int MaxRtvDescriptors = 4096;
+constexpr int MaxDescriptorHeaps = 1024;
+constexpr int MaxDescriptorSetLayoutsPerPipeline = 16;
+constexpr int MaxDescriptorSetsPerPipeline = MaxDescriptorSetLayoutsPerPipeline;
+constexpr int MaxDescriptorSets = 2048;
+constexpr int MaxDescriptorSetLayoutBindings = 32;
+constexpr int MaxDescriptorSetWrites = 128;
+constexpr int MaxSwapchainImages = 5;
+[[deprecated]] constexpr int MaxSwapchainBuffers = MaxSwapchainImages;
+constexpr int MaxDevices = 8;
+constexpr int MaxSurfaceFormats = 1024;
+constexpr int MaxColorSpaces = 32;
+constexpr int MaxVertexShaderInputAttributes = 32;
+constexpr int MaxVertexShaderInputBindings = MaxVertexShaderInputAttributes;
+constexpr int MaxShaderStages = 8;
+constexpr int MaxPushConstantRanges = 4;
+constexpr int MaxPushConstantSize = 128;
+constexpr int MaxPipelineDynamicStates = 1024;
+constexpr int MaxRayPipelineShaderStages = 128;
+constexpr int MaxRayPipelineShaderGroups = 128;
+constexpr int MaxSubresources = 1024;
+constexpr int MaxShaderResourceViews = 32;
+constexpr int MaxUnorderedAccessViews = 32;
+constexpr int MaxRenderTargetViews = 32;
+constexpr int MaxDepthStencilViews = 32;
+constexpr int MaxTimerQueries = 1024;
+constexpr int MaxTimerQueryHeapSize = MaxTimerQueries << 1;
+constexpr int MaxCommandListResources = 1024;
+constexpr int MaxBarriers = 1024;
+constexpr int MaxDynamicOffsets = 4;
 
-const int DisplayWidth = 0;
-const int DisplayHeight = 0;
+constexpr int DisplayWidth = 0;
+constexpr int DisplayHeight = 0;
 
-const int MaxViews = 16;
-const int MaxViewports = MaxViews;
-const int MaxScissors = MaxViews;
+constexpr int MaxViews = 16;
+constexpr int MaxViewports = MaxViews;
+constexpr int MaxScissors = MaxViews;
 
 constexpr size_t UploadPoolCompactThreshold = 32u * 1024u * 1024u;
 
@@ -4298,6 +4298,10 @@ public:
     virtual bool supportsMultiViewPerViewViewportsQCOM() const { return false; }
 
     virtual bool supportsMultiViewPerViewRenderAreasQCOM() const { return false; };
+
+    virtual bool supportsQueuePerfHintQCOM() const { return false; }
+
+    virtual bool supportsElapsedTimerQueryQCOM() const { return false; }
 
     virtual bool supportsOpticalFlowNV() const { return false; }
 

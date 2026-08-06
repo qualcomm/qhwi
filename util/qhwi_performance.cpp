@@ -112,7 +112,7 @@ void qhwi_performance::PerformanceLogManager::SetLogFilePath(const char* filepat
 
 bool qhwi_performance::PerformanceLogManager::Create(const char* pVersion,
                                                      const char* pCommitHash,
-                                                     std::string filename,
+                                                     const std::string& filename,
                                                      const uint64_t* pFrameCount,
                                                      uint64_t warmUpFrames,
                                                      bool showRegisteredMetrics,
@@ -322,12 +322,38 @@ bool qhwi_performance::PerformanceLogManager::GetPLMMetricProperyByMetricID(uint
     }
 }
 
-qhwi_performance::PLMMetricID qhwi_performance::PerformanceLogManager::RegisterMetric(std::string clientName,
-                                                                                      std::string metricName,
+static constexpr const char* MetricUnitString(qhwi_performance::PLMMetricUnit unit)
+{
+    switch (unit)
+    {
+    case qhwi_performance::PLMMetricUnit::eCount:
+        return "count";
+    case qhwi_performance::PLMMetricUnit::eMicrosec:
+        return "usec";
+    case qhwi_performance::PLMMetricUnit::eMillisec:
+        return "msec";
+    case qhwi_performance::PLMMetricUnit::ePercent:
+        return "percent";
+    case qhwi_performance::PLMMetricUnit::eRate:
+        return "per sec";
+    case qhwi_performance::PLMMetricUnit::eBytes:
+        return "bytes";
+    case qhwi_performance::PLMMetricUnit::eBytesPerSec:
+        return "bytes per sec";
+    case qhwi_performance::PLMMetricUnit::eHertz:
+        return "hertz";
+    case qhwi_performance::PLMMetricUnit::eUnknown:
+    default:
+        QHWI_FATAL("Unknown metric unit");
+    }
+}
+
+qhwi_performance::PLMMetricID qhwi_performance::PerformanceLogManager::RegisterMetric(const std::string& clientName,
+                                                                                      const std::string& metricName,
                                                                                       qhwi_performance::PLMMetricType metricType,
                                                                                       qhwi_performance::PLMMetricUnit unit,
-                                                                                      std::string metricDescription,
-                                                                                      std::string category,
+                                                                                      const std::string& metricDescription,
+                                                                                      const std::string& category,
                                                                                       int frequency,
                                                                                       qhwi_performance::PLMMetricAggregate aggregateType,
                                                                                       uint32_t shaderBasedMetricID)
@@ -337,49 +363,27 @@ qhwi_performance::PLMMetricID qhwi_performance::PerformanceLogManager::RegisterM
     MetricMetadata metricMetadata;
     PLMMetricID metricID = m_nextMetricID;
 
-    auto GetMetricUnitString = [&]()
-    {
-        switch (unit)
-        {
-        case PLMMetricUnit::eCount:
-            return "count";
-        case PLMMetricUnit::eMicrosec:
-            return "usec";
-        case PLMMetricUnit::eMillisec:
-            return "msec";
-        case PLMMetricUnit::ePercent:
-            return "percent";
-        case PLMMetricUnit::eRate:
-            return "per sec";
-        case PLMMetricUnit::eBytes:
-            return "bytes";
-        case PLMMetricUnit::eBytesPerSec:
-            return "bytes per sec";
-        case PLMMetricUnit::eHertz:
-            return "hertz";
-        case PLMMetricUnit::eUnknown:
-        default:
-            QHWI_FATAL("Unknown metric unit");
-        }
-    };
-
     metricMetadata.m_clientName = clientName;
     metricMetadata.m_metricName = metricName;
     metricMetadata.m_metricType = metricType;
     metricMetadata.m_metricUnit = unit;
-    metricMetadata.m_metricUnitStr = GetMetricUnitString();
+    metricMetadata.m_metricUnitStr = MetricUnitString(unit);
     metricMetadata.m_category = category;
     metricMetadata.m_description = metricDescription;
     metricMetadata.m_frequency = frequency;
     metricMetadata.m_aggregateType = aggregateType;
     metricMetadata.m_unitMultiplier = MetricUnitMultipliers[(uint32_t)unit];
     metricMetadata.m_metricID = metricID;
-    metricMetadata.m_header = clientName + "::" + metricName + "::" + "(" + GetMetricUnitString() + ")";
+    metricMetadata.m_header = clientName + "::" + metricName + "::(" + MetricUnitString(unit) + ")";
     metricMetadata.m_isActive = false;
     metricMetadata.m_metricCount = nullptr;
     metricMetadata.m_shaderBasedMetricIndex = shaderBasedMetricID;
 
-    m_metricMetadata.insert({ metricID, metricMetadata });
+    auto [it, inserted] = m_metricMetadata.insert({ metricID, std::move(metricMetadata) });
+    if (inserted)
+    {
+        it->second.m_values.reserve(TimerQueryPoolSize);
+    }
 
     ++m_nextMetricID;
     return metricID;
@@ -387,7 +391,7 @@ qhwi_performance::PLMMetricID qhwi_performance::PerformanceLogManager::RegisterM
 
 void qhwi_performance::PerformanceLogManager::LogGPUBeginTimer(qhwi_performance::PLMMetricID metricID, qhwi::CommandList* commandList)
 {
-    if (m_isPLMActive)
+    if (m_isPLMActive) [[unlikely]]
     {
         auto metric = m_metricMetadata.find(metricID);
         if (metric != m_metricMetadata.end())
@@ -415,7 +419,7 @@ void qhwi_performance::PerformanceLogManager::LogGPUBeginTimer(qhwi_performance:
 
 void qhwi_performance::PerformanceLogManager::LogGPUEndTimer()
 {
-    if (m_isPLMActive)
+    if (m_isPLMActive) [[unlikely]]
     {
         if (!m_activeGPUMetrics.empty())
         {
@@ -437,7 +441,7 @@ void qhwi_performance::PerformanceLogManager::LogGPUEndTimer()
 
 void qhwi_performance::PerformanceLogManager::LogPreComputedMetric(qhwi_performance::PLMMetricID metricID, float value)
 {
-    if (m_isPLMActive)
+    if (m_isPLMActive) [[unlikely]]
     {
         auto it = m_metricMetadata.find(metricID);
 
@@ -451,7 +455,7 @@ void qhwi_performance::PerformanceLogManager::LogPreComputedMetric(qhwi_performa
 
 void qhwi_performance::PerformanceLogManager::LogCPUBeginTimer(qhwi_performance::PLMMetricID metricID)
 {
-    if (m_isPLMActive)
+    if (m_isPLMActive) [[unlikely]]
     {
         auto it = m_metricMetadata.find(metricID);
 
@@ -478,7 +482,7 @@ void qhwi_performance::PerformanceLogManager::LogCPUBeginTimer(qhwi_performance:
 
 void qhwi_performance::PerformanceLogManager::LogCPUEndTimer()
 {
-    if (m_isPLMActive)
+    if (m_isPLMActive) [[unlikely]]
     {
         if (!m_activeCPUMetrics.empty())
         {
@@ -765,6 +769,8 @@ void qhwi_performance::PerformanceLogManager::InitializeTimerQueryPool()
         CommandListRef commandList = m_device->createCommandList(m_commandQueue);
 
         m_availableTimerQueryPool.resize(TimerQueryPoolSize);
+        m_metricsCapturedThisFrame.reserve(TimerQueryPoolSize);
+        m_pendingResolveTimerQueryPool.reserve(TimerQueryPoolSize);
 
         commandList->open();
         {
@@ -807,7 +813,7 @@ void qhwi_performance::PerformanceLogManager::InitializeShaderMetricsBufferPool(
 
 void qhwi_performance::PerformanceLogManager::UpdateLastCompletedSubmissionID(qhwi::CommandList* commandList)
 {
-    if (m_isPLMActive)
+    if (m_isPLMActive) [[unlikely]]
     {
         // Get the last submitted command list submissionID on the graphics queue
         // Note: this may be overwritten on DX if timer queries are used
@@ -1146,7 +1152,7 @@ std::span<qhwi_performance::RealtimeMetricHistory* const> qhwi_performance::Perf
 
 void qhwi_performance::PerformanceLogManager::StartFrame()
 {
-    if (m_isPLMActive)
+    if (m_isPLMActive) [[unlikely]]
     {
         // Add Shader based metrics to metrics capture list
         for (auto& metric : m_metricMetadata)

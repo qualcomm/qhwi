@@ -16,6 +16,14 @@ This example showcases tile-based rendering techniques specific to Qualcomm Adre
 
 **Note**: This example currently uses GLSL shaders exclusively. HLSL support will be enabled once DXC properly supports the VK_QCOM_tile_shading extension.
 
+## Command Line Parameters
+
+See [README.md](../README.md) for shared arguments available to all examples.
+
+| Parameter | Description | Values | Default |
+|-----------|-------------|--------|---------|
+| `--use-ext` | Enable tile shading extension code path | `true`, `false` | `true` |
+
 ## Running the Example
 
 ### Android

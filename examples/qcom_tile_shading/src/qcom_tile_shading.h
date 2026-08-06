@@ -23,6 +23,7 @@ public:
     {
     };
 
+    ~QCOMTileShadingExample() override;
     ResultCode init(int argc, const char* const* argv);
     ResultCode init(const Config& config);
 

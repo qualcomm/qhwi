@@ -1008,6 +1008,8 @@ public:
 
     void waitForIdle() override { m_queue.waitIdle(); }
 
+    void setPerfHintQCOM(VkPerfHintTypeQCOM type, uint32_t scale = 100);
+
     CommandQueue::Description* desc() override { return &m_desc.base; }
 
     const CommandQueue::Description* desc() const override { return &m_desc.base; }
@@ -1202,6 +1204,10 @@ struct VkFeaturesInfo
 
     bool supportsOpacityMicromaps() const { return opacityMicromap.micromap == VK_TRUE; }
 
+    bool supportsQueuePerfHintQCOM() const { return queuePerfHintFeaturesQCOM.queuePerfHint == VK_TRUE; }
+
+    bool supportsElapsedTimerQueryQCOM() const { return elapsedTimerQueryFeaturesQCOM.elapsedTimerQuery == VK_TRUE; }
+
     bool supportsCustomResolve() const { return customResolveFeatures.customResolve == VK_TRUE; }
 
     vk::PhysicalDeviceFeatures2KHR features2{};
@@ -1223,20 +1229,22 @@ struct VkFeaturesInfo
     vk::PhysicalDeviceSubgroupSizeControlFeaturesEXT subgroupSizeControl{};
     vk::PhysicalDeviceSynchronization2FeaturesKHR synchronization2{};
     vk::PhysicalDeviceTimelineSemaphoreFeatures timelineSemaphore{};
-    VkPhysicalDeviceTileShadingFeaturesQCOM tileShadingFeatures{};
+    vk::PhysicalDeviceTileShadingFeaturesQCOM tileShadingFeatures{};
     vk::PhysicalDeviceGraphicsPipelineLibraryFeaturesEXT graphicsPipelineLibraryFeatures{};
     vk::PhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeatures{};
     vk::PhysicalDeviceDynamicRenderingLocalReadFeaturesKHR dynamicRenderingLocalReadFeatures{};
     vk::PhysicalDeviceDynamicRenderingUnusedAttachmentsFeaturesEXT dynamicRenderingUnusedAttachmentsFeatures{};
-    VkPhysicalDeviceTileMemoryHeapFeaturesQCOM tileMemoryHeapQCOM{};
-    VkPhysicalDeviceTensorFeaturesARM tensorFeaturesARM{};
-    VkPhysicalDeviceDataGraphFeaturesARM dataGraphFeaturesARM{};
+    vk::PhysicalDeviceTileMemoryHeapFeaturesQCOM tileMemoryHeapQCOM{};
+    vk::PhysicalDeviceTensorFeaturesARM tensorFeaturesARM{};
+    vk::PhysicalDeviceDataGraphFeaturesARM dataGraphFeaturesARM{};
     vk::PhysicalDeviceFragmentShaderBarycentricFeaturesKHR barycentricFeatures{};
     vk::PhysicalDeviceRayTracingMaintenance1FeaturesKHR rtMaintenance1Features{};
     vk::PhysicalDevicePipelineCreationCacheControlFeaturesEXT pipelineCreationCacheControl{};
     vk::PhysicalDeviceMemoryDecompressionFeaturesEXT memoryDecompressionFeatures{};
     vk::PhysicalDeviceRayTracingInvocationReorderFeaturesNV rtInvocationReorderFeatures = {};
     vk::PhysicalDeviceOpacityMicromapFeaturesEXT opacityMicromap = {};
+    vk::PhysicalDeviceQueuePerfHintFeaturesQCOM queuePerfHintFeaturesQCOM{};
+    vk::PhysicalDeviceElapsedTimerQueryFeaturesQCOM elapsedTimerQueryFeaturesQCOM{};
     vk::PhysicalDeviceCustomResolveFeaturesEXT customResolveFeatures = {};
 };
 
@@ -1255,6 +1263,7 @@ struct VkPropertiesInfo
     vk::PhysicalDeviceTileMemoryHeapPropertiesQCOM tileMemoryHeapQCOM{};
     vk::PhysicalDeviceMemoryDecompressionPropertiesEXT memoryDecompressionProperties{};
     vk::PhysicalDeviceRayTracingInvocationReorderPropertiesNV rtInvocationReorderProperties{};
+    vk::PhysicalDeviceQueuePerfHintPropertiesQCOM queuePerfHintPropertiesQCOM{};
 };
 
 class VkPhysicalDevice final
@@ -1388,9 +1397,11 @@ public:
             VK_NV_OPTICAL_FLOW_EXTENSION_NAME,
             VK_NVX_BINARY_IMPORT_EXTENSION_NAME,
             VK_NVX_IMAGE_VIEW_HANDLE_EXTENSION_NAME,
+            VK_QCOM_ELAPSED_TIMER_QUERY_EXTENSION_NAME,
             VK_QCOM_IMAGE_PROCESSING_EXTENSION_NAME,
             VK_QCOM_MULTIVIEW_PER_VIEW_RENDER_AREAS_EXTENSION_NAME,
             VK_QCOM_MULTIVIEW_PER_VIEW_VIEWPORTS_EXTENSION_NAME,
+            VK_QCOM_QUEUE_PERF_HINT_EXTENSION_NAME,
             VK_QCOM_TILE_PROPERTIES_EXTENSION_NAME,
             VK_QCOM_TILE_SHADING_EXTENSION_NAME,
             VK_QCOM_TILE_MEMORY_HEAP_EXTENSION_NAME,
@@ -1442,6 +1453,7 @@ struct VkFn
     PFN_vkCmdDispatchTileQCOM cmdDispatchTileQCOM = nullptr;
     PFN_vkGetFramebufferTilePropertiesQCOM getFramebufferTilePropertiesQCOM = nullptr;
     PFN_vkCmdBindTileMemoryQCOM cmdBindTileMemoryQCOM = nullptr;
+    PFN_vkQueueSetPerfHintQCOM queueSetPerfHintQCOM = nullptr;
 };
 
 class VkDevice final : public Device
@@ -1634,6 +1646,10 @@ public:
     bool supportsMultiViewPerViewRenderAreasQCOM() const override { return getVkFeaturesInfo().supportsMultiViewPerViewRenderAreasQCOM(); };
 
     bool supportsOpticalFlowNV() const override { return getVkFeaturesInfo().supportsOpticalFlowNV(); }
+
+    bool supportsQueuePerfHintQCOM() const override { return getVkFeaturesInfo().supportsQueuePerfHintQCOM(); }
+
+    bool supportsElapsedTimerQueryQCOM() const override { return getVkFeaturesInfo().supportsElapsedTimerQueryQCOM(); }
 
     bool supportsDynamicRendering() const
     {

@@ -66,10 +66,21 @@ TestApp::TestApp(int argc, const char* const* argv)
         ("backends", "Graphics backends", cxxopts::value<std::vector<std::string>>()->default_value(defaultGraphicsBackends))
         ("max-frames", "Maximum frames.  0: unlimited", cxxopts::value<uint32_t>()->default_value("0"))
         ("emulate-uma", "Emulate UMA (Unified Memory Architecture)", cxxopts::value<bool>()->default_value("false"))
-        ("disable-d3d-enhanced-barriers", "Disable d3d12 enhanced barriers", cxxopts::value<bool>()->default_value("false"));
+        ("disable-d3d-enhanced-barriers", "Disable d3d12 enhanced barriers", cxxopts::value<bool>()->default_value("false"))
+        ("gtest_output", "gtest-compatible XML output (xml:path or path)", cxxopts::value<std::string>()->default_value(""));
     // clang-format on
 
     params = opts.parse(argc, argv);
+
+    const std::string rawGtestOutput = params["gtest_output"].as<std::string>();
+    if (rawGtestOutput.size() > 4 && rawGtestOutput.substr(0, 4) == "xml:")
+    {
+        gtestOutputPath = rawGtestOutput.substr(4);
+    }
+    else
+    {
+        gtestOutputPath = rawGtestOutput;
+    }
 
     testsParam = params["tests"].as<std::vector<std::string>>();
     if (testsParam.size() == 1 && testsParam[0] == "")
@@ -164,12 +175,12 @@ static void onAppCmd(android_app* app, int32_t cmd)
 
 static int32_t onInputEvent(android_app* app, AInputEvent* event)
 {
-    int32_t type = AInputEvent_getType(event);
+    const int32_t type = AInputEvent_getType(event);
     TestAppState* testAppState = (TestAppState*)app->userData;
     if (type == AINPUT_EVENT_TYPE_MOTION)
     {
-        int32_t action = AMotionEvent_getAction(event);
-        uint32_t actionFlags = action & AMOTION_EVENT_ACTION_MASK;
+        const int32_t action = AMotionEvent_getAction(event);
+        const uint32_t actionFlags = action & AMOTION_EVENT_ACTION_MASK;
         switch (actionFlags)
         {
         case AMOTION_EVENT_ACTION_UP:
@@ -180,7 +191,7 @@ static int32_t onInputEvent(android_app* app, AInputEvent* event)
     return 0;
 }
 
-void createTestApp(android_app* state, std::unique_ptr<TestApp>& app, Config& config)
+void createTestApp(android_app* state, std::unique_ptr<TestApp>& app, const Config& config)
 {
     int argc;
     char** argv;
@@ -190,12 +201,12 @@ void createTestApp(android_app* state, std::unique_ptr<TestApp>& app, Config& co
     app.reset(new TestApp(argc, argv));
 }
 
-void createTestApp(std::unique_ptr<TestApp>& app, Config& config)
+void createTestApp(std::unique_ptr<TestApp>& app, const Config& config)
 {
     app.reset(new TestApp(config.numParams, config.params));
 }
 
-static void nextTest(std::unique_ptr<TestApp>& app, int& currentTestIndex, UnitTest*& currentTest, Config& config)
+static void nextTest(std::unique_ptr<TestApp>& app, int& currentTestIndex, UnitTest*& currentTest, const Config& config)
 {
     currentTest->waitUntilCompleted();
     app->tests[currentTestIndex].reset();
@@ -226,6 +237,41 @@ static void processEvents(android_app* state)
     }
 }
 
+static void writeGtestXml(const std::string& path, const std::vector<std::pair<std::string, bool>>& results)
+{
+    const int total = (int)results.size();
+    int failures = 0;
+    for (const auto& r : results)
+    {
+        if (!r.second)
+        {
+            failures++;
+        }
+    }
+
+    std::ofstream f(path);
+    if (!f.is_open())
+    {
+        QHWI_LOGW("Failed to write gtest results to %s", path.c_str());
+        return;
+    }
+    f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    f << "<testsuites tests=\"" << total << "\" failures=\"" << failures << "\" disabled=\"0\" errors=\"0\" time=\"0\" name=\"AllTests\">\n";
+    f << "  <testsuite name=\"qhwi_test\" tests=\"" << total << "\" failures=\"" << failures << "\" disabled=\"0\" errors=\"0\" time=\"0\">\n";
+    for (const auto& r : results)
+    {
+        f << "    <testcase name=\"" << r.first << "\" status=\"run\" result=\"completed\" time=\"0\" classname=\"qhwi_test\">\n";
+        if (!r.second)
+        {
+            f << "      <failure message=\"Test failed\" type=\"\"><![CDATA[Test failed]]></failure>\n";
+        }
+        f << "    </testcase>\n";
+    }
+    f << "  </testsuite>\n";
+    f << "</testsuites>\n";
+    QHWI_LOGI("gtest results written to %s (%d tests, %d failures)", path.c_str(), total, failures);
+}
+
 extern void pil_smoke_test();
 
 void android_main(android_app* state)
@@ -243,11 +289,17 @@ void android_main(android_app* state)
 
     pil_smoke_test();
     ResultCode resultCode = ResultCode::eErrorOther;
+    std::string gtestOutputPath;
+    std::vector<std::pair<std::string, bool>> testResults;
     while (true)
     {
         if (!app)
         {
             createTestApp(state, app, config);
+            if (gtestOutputPath.empty())
+            {
+                gtestOutputPath = app->gtestOutputPath;
+            }
         }
         ResultCode testResultCode;
         UnitTest* currentTest = app->tests[currentTestIndex].get();
@@ -266,7 +318,14 @@ void android_main(android_app* state)
             if (testResultCode != ResultCode::eSuccess)
             {
                 resultCode = testResultCode;
+                testResults.push_back({ currentTest->getName(), false });
+                const bool isLastTest = (currentTestIndex + 1 == int(app->tests.size()));
                 nextTest(app, currentTestIndex, currentTest, config);
+                if (isLastTest && !gtestOutputPath.empty())
+                {
+                    writeGtestXml(gtestOutputPath, testResults);
+                    return;
+                }
                 continue;
             }
         }
@@ -278,11 +337,18 @@ void android_main(android_app* state)
         {
             testResultCode = currentTest->compareOutput();
             QHWI_LOGI("test %s %s", currentTest->getName(), testResultCode == ResultCode::eSuccess ? "passed" : "failed");
+            testResults.push_back({ currentTest->getName(), testResultCode == ResultCode::eSuccess });
             if (testResultCode != ResultCode::eSuccess)
             {
                 resultCode = testResultCode;
             }
+            const bool isLastTest = (currentTestIndex + 1 == int(app->tests.size()));
             nextTest(app, currentTestIndex, currentTest, config);
+            if (isLastTest && !gtestOutputPath.empty())
+            {
+                writeGtestXml(gtestOutputPath, testResults);
+                return;
+            }
             continue;
         }
         currentTest->runIteration();

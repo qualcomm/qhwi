@@ -16,7 +16,7 @@ This example showcases the VK_QCOM_tile_memory_heap extension which allows textu
 
 The example loads a sample PNG image and demonstrates the performance difference between:
 - Textures allocated in regular GPU memory
-- Textures allocated in tile memory (when `--use-tile-memory=1`)
+- Textures allocated in tile memory (when `--use-ext=true`)
 
 ## Setup
 
@@ -24,18 +24,26 @@ The example requires texture data to be installed:
 1. Extract the data tarball
 2. Run `install.ps1` to copy data files to the device
 
+## Command Line Parameters
+
+See [README.md](../README.md) for shared arguments available to all examples.
+
+| Parameter | Description | Values | Default |
+|-----------|-------------|--------|---------|
+| `--use-ext` | Allocate texture in tile memory | `true`, `false` | `true` |
+
 ## Running the Example
 
 ### Android
 
 **With tile memory (default):**
 ```bash
-adb shell am start -e cmdLine "--use-tile-memory=1" com.qualcomm.qhwi_example_qcom_tile_memory_heap/android.app.NativeActivity
+adb shell am start -e cmdLine "--use-ext=true" com.qualcomm.qhwi_example_qcom_tile_memory_heap/android.app.NativeActivity
 ```
 
 **Without tile memory (for comparison):**
 ```bash
-adb shell am start -e cmdLine "--use-tile-memory=0" com.qualcomm.qhwi_example_qcom_tile_memory_heap/android.app.NativeActivity
+adb shell am start -e cmdLine "--use-ext=false" com.qualcomm.qhwi_example_qcom_tile_memory_heap/android.app.NativeActivity
 ```
 
 To kill the app:
@@ -47,12 +55,6 @@ Logcat:
 ```bash
 adb logcat -T1 -s Graphics
 ```
-
-## Command Line Parameters
-
-| Parameter | Description | Values | Default |
-|-----------|-------------|--------|---------|
-| `--use-tile-memory` | Allocate texture in tile memory | 0 (disabled), 1 (enabled) | 1 |
 
 ## Notes
 

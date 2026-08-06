@@ -1,23 +1,28 @@
-# QHWI Example Base
+# QHWI Examples
 
-This directory contains the common base code (`qhwi_example.h/cpp`) used by all QHWI examples. It provides initialization, command-line argument parsing, and basic rendering loop functionality.
+This directory contains sample applications demonstrating QHWI features and extensions. Each example is a self-contained project with its own `android/` Gradle project and `data/shaders/` directory.
 
 ## Command-Line Arguments
 
-All examples built on this base support the following command-line arguments:
+All examples support the following command-line arguments:
 
 | Argument | Type | Default | Description |
 |----------|------|---------|-------------|
-| `--backend` | string | `d3d12`/`vk`* | Graphics backend to use |
+| `--backend` | string | `d3d12`/`vk`/`mtl`* | Graphics backend to use |
 | `--width` | uint32_t | `0` | Output surface width (0 = use default) |
 | `--height` | uint32_t | `0` | Output surface height (0 = use default) |
 | `--debug` | bool | `true`** | Enable debug layer |
 | `--apiDump` | bool | `false` | Enable API call dumping |
-| `--pil-metrics` | bool | `false` | Enable real-time GPU metrics via PIL (requires `QHWI_PIL_DIR` set at build time and SDP running) |
+| `--pil-metrics` | bool | `true` | Enable real-time GPU metrics via PIL (requires `QHWI_PIL_DIR` set at build time and SDP running) |
 | `--num-frames` | uint32_t | `0` | Number of frames to run before exiting (0 = run indefinitely) |
+| `--use-ext` | bool | `true` | Enable the extension code path (examples use this to toggle the featured extension on/off for comparison) |
 
 \* Default backend depends on platform/build configuration  
 \*\* Default is `true` for debug builds, `false` for release builds
+
+## Frame Statistics
+
+At exit, each example logs a summary of average FPS, frame time, and any active PIL metrics. The first 30 frames are excluded from all measurements as a warmup period.
 
 ## Usage Examples
 

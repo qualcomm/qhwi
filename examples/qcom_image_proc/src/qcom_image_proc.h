@@ -19,6 +19,7 @@ class QCOMImageProcExample : public Example
 {
 public:
     QCOMImageProcExample();
+    ~QCOMImageProcExample() override;
 
     struct Config : public Example::Config
     {

@@ -3938,6 +3938,13 @@ void qhwi::VkCommandQueue::updateLastCompletedID()
     }
 }
 
+void qhwi::VkCommandQueue::setPerfHintQCOM(VkPerfHintTypeQCOM type, uint32_t scale)
+{
+    QHWI_ASSERT(m_device->fn().queueSetPerfHintQCOM != nullptr);
+    VkPerfHintInfoQCOM info{ .sType = VK_STRUCTURE_TYPE_PERF_HINT_INFO_QCOM, .type = type, .scale = scale };
+    QHWI_ASSERT(m_device->fn().queueSetPerfHintQCOM(m_queue, &info) == VK_SUCCESS);
+}
+
 void qhwi::VkCommandList::buildBottomLevelAccelerationStructure(AccelerationStructure* accelerationStructure,
                                                                 Buffer* scratchBuffer,
                                                                 BottomLevelDescriptor* bottomLevelDescriptors,
@@ -4337,7 +4344,7 @@ void qhwi::VkDevice::init(Context* context,
         {
             m_tileMem = m_device->allocateMemoryUnique(vk::MemoryAllocateInfo(m_tileMemSize, m_tileMemMemoryTypeIndex));
             m_fn.cmdBindTileMemoryQCOM = (PFN_vkCmdBindTileMemoryQCOM)m_device->getProcAddr("vkCmdBindTileMemoryQCOM");
-            assert(m_fn.cmdBindTileMemoryQCOM);
+            QHWI_ASSERT(m_fn.cmdBindTileMemoryQCOM);
         }
         m_ownsDeviceObject = true;
 
@@ -4388,13 +4395,19 @@ void qhwi::VkDevice::init(Context* context,
     if (m_physicalDevice.getVkFeaturesInfo().supportsTileShadingQCOM())
     {
         m_fn.cmdBeginPerTileExecutionQCOM = (PFN_vkCmdBeginPerTileExecutionQCOM)m_device->getProcAddr("vkCmdBeginPerTileExecutionQCOM");
-        assert(m_fn.cmdBeginPerTileExecutionQCOM);
+        QHWI_ASSERT(m_fn.cmdBeginPerTileExecutionQCOM);
         m_fn.cmdEndPerTileExecutionQCOM = (PFN_vkCmdEndPerTileExecutionQCOM)m_device->getProcAddr("vkCmdEndPerTileExecutionQCOM");
-        assert(m_fn.cmdEndPerTileExecutionQCOM);
+        QHWI_ASSERT(m_fn.cmdEndPerTileExecutionQCOM);
         m_fn.cmdDispatchTileQCOM = (PFN_vkCmdDispatchTileQCOM)m_device->getProcAddr("vkCmdDispatchTileQCOM");
-        assert(m_fn.cmdDispatchTileQCOM);
+        QHWI_ASSERT(m_fn.cmdDispatchTileQCOM);
         m_fn.getFramebufferTilePropertiesQCOM = (PFN_vkGetFramebufferTilePropertiesQCOM)m_device->getProcAddr("vkGetFramebufferTilePropertiesQCOM");
-        assert(m_fn.getFramebufferTilePropertiesQCOM);
+        QHWI_ASSERT(m_fn.getFramebufferTilePropertiesQCOM);
+    }
+
+    if (m_physicalDevice.getVkFeaturesInfo().supportsQueuePerfHintQCOM())
+    {
+        m_fn.queueSetPerfHintQCOM = (PFN_vkQueueSetPerfHintQCOM)m_device->getProcAddr("vkQueueSetPerfHintQCOM");
+        QHWI_ASSERT(m_fn.queueSetPerfHintQCOM);
     }
 
     VmaAllocatorCreateInfo info{};
@@ -4627,8 +4640,6 @@ bool qhwi::VkPhysicalDevice::supportsExtensions(std::span<const char* const> ext
 
 void qhwi::VkFeaturesInfo::init(const VkPhysicalDevice* physicalDevice)
 {
-    tileShadingFeatures = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_SHADING_FEATURES_QCOM };
-    tileMemoryHeapQCOM = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TILE_MEMORY_HEAP_FEATURES_QCOM };
     rtInvocationReorderFeatures.setRayTracingInvocationReorder(vk::True);
 
     qhwi::VkStructChain(features2, physicalDevice)
@@ -4664,6 +4675,8 @@ void qhwi::VkFeaturesInfo::init(const VkPhysicalDevice* physicalDevice)
         .link(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME, barycentricFeatures)
         .link(VK_EXT_PIPELINE_CREATION_CACHE_CONTROL_EXTENSION_NAME, pipelineCreationCacheControl)
         .link(VK_EXT_OPACITY_MICROMAP_EXTENSION_NAME, opacityMicromap)
+        .link(VK_QCOM_QUEUE_PERF_HINT_EXTENSION_NAME, queuePerfHintFeaturesQCOM)
+        .link(VK_QCOM_ELAPSED_TIMER_QUERY_EXTENSION_NAME, elapsedTimerQueryFeaturesQCOM)
         .link(VK_EXT_CUSTOM_RESOLVE_EXTENSION_NAME, customResolveFeatures);
 }
 
@@ -4696,7 +4709,8 @@ void qhwi::VkPropertiesInfo::init(const qhwi::VkPhysicalDevice* physicalDevice)
         .link(rayTracingPipeline)
         .link(VK_NV_RAY_TRACING_INVOCATION_REORDER_EXTENSION_NAME, rtInvocationReorderProperties)
         .link(VK_QCOM_TILE_MEMORY_HEAP_EXTENSION_NAME, tileMemoryHeapQCOM)
-        .link(VK_EXT_MEMORY_DECOMPRESSION_EXTENSION_NAME, memoryDecompressionProperties);
+        .link(VK_EXT_MEMORY_DECOMPRESSION_EXTENSION_NAME, memoryDecompressionProperties)
+        .link(VK_QCOM_QUEUE_PERF_HINT_EXTENSION_NAME, queuePerfHintPropertiesQCOM);
 
     physicalDevice->get().getProperties2(&properties2);
 

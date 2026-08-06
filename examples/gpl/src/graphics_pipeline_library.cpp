@@ -446,6 +446,11 @@ void GraphicsPipelineLibraryExample::initialVertexBuffer()
     m_numVerts = NumVerts;
 }
 
+GraphicsPipelineLibraryExample::~GraphicsPipelineLibraryExample()
+{
+    shutdown();
+}
+
 ResultCode GraphicsPipelineLibraryExample::init(int argc, const char* const* argv)
 {
     cxxopts::Options opts("GraphicsPipelineLibraryExample", "Run Graphics Pipeline Library example");
