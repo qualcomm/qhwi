@@ -109,8 +109,8 @@ The build system provides the following options:
 - *QHWI_ENABLE_SER*: enable Shader Execution Reordering support on D3D12 (requires Shader Model 6.9 preview drivers)
 - *QHWI_ENABLE_PIX_SUPPORT*: enable PIX capture support (requires *QHWI_ENABLE_D3D12_BACKEND*)
 - *QHWI_LINUX_WSI*: Linux windowing system to target — `xlib`, `xcb`, or `wayland`
-- *PIL_INCLUDE_DIR*: path to the PIL `include/` directory (Windows ARM64 and Android only; enables `QHWI_ENABLE_PIL`)
-- *PIL_BINARY_DIR*: path to the PIL binary directory (`.../bin/ARM64` on Windows, `.../bin/arm64-v8a` on Android)
+- *QHWI_PIL_DIR*: path to the root of an extracted PIL package
+- *QHWI_ENABLE_PIL*: set to `OFF` to disable PIL even when `QHWI_PIL_DIR` is set (auto-enabled when `QHWI_PIL_DIR` is valid)
 
 The GLFW window backend is used automatically on non-Android platforms whenever unit tests or examples are built; there is no separate toggle for it.
 
@@ -250,18 +250,10 @@ adb shell "rm /sdcard/Android/data/com.qualcomm.qhwi_test/files/../config.txt"
    - Windows: [Snapdragon® Profiler Interface Library (Windows)](https://qpm.qualcomm.com/#/main/tools/details/ProfilerInterfaceLibraryWindows)
    - Android: [Snapdragon® Profiler Interface Library (Android)](https://qpm.qualcomm.com/#/main/tools/details/ProfilerInterfaceLibraryAndroid)
 2. Extract the package to a directory of your choice
-3. Set the CMake variables at configure time:
-   - `PIL_INCLUDE_DIR` — path to the `include/` directory of the extracted package
-   - `PIL_BINARY_DIR` — path to the platform binary directory:
-     - Windows ARM64: `.../bin/ARM64`
-     - Android: `.../bin/arm64-v8a`
-4. `QHWI_ENABLE_PIL` will be set automatically when `PIL_INCLUDE_DIR` is non-empty
-
-   **Android:** uncomment and fill in the PIL arguments in `test/android/app/build.gradle`:
-   ```groovy
-   '-DPIL_INCLUDE_DIR=<path-to-PIL>/include',
-   '-DPIL_BINARY_DIR=<path-to-PIL>/bin/arm64-v8a'
-   ```
+3. Set `QHWI_PIL_DIR` to the root of the extracted package:
+   - **CMake:** `-DQHWI_PIL_DIR=<path-to-PIL>`
+   - **Android Studio (examples):** add `QHWI_PIL_DIR=<path-to-PIL>` to your `local.properties` file
+4. `QHWI_ENABLE_PIL` will be set automatically when `QHWI_PIL_DIR` is valid; set it to `OFF` explicitly to disable PIL even when `QHWI_PIL_DIR` is set
 
 **Runtime:** SDP must be running on the host (or connected Android device) for PIL metrics to be available. SDP is available from QPM: [Snapdragon® Profiler](https://qpm.qualcomm.com/#/main/tools/details/SnapdragonProfiler)
 

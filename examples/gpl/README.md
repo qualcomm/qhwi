@@ -33,8 +33,11 @@ cmake --build build --target qhwi_example_gpl
 
 ### Command Line Parameters
 
+See [common/README.md](../common/README.md) for shared arguments available to all examples.
+
 | Parameter | Description | Values | Default |
 |-----------|-------------|--------|---------|
+| `--use-ext` | Default pipeline type: true=pipeline library, false=monolithic (overridden by `--pipelineType`) | `true`, `false` | `true` |
 | `--shaderVariation` | Shader complexity type | 0=permutations, 1=deadVarying, 2=HeavyVec4, 3=largeUBO | 0 |
 | `--numPipelines` | Number of pipelines to create | Integer | 1024 |
 | `--pipelineType` | Pipeline creation method | 0=monolithic, 1=pipeline library | 0 |

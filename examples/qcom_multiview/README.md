@@ -14,6 +14,14 @@ This example demonstrates multiview rendering capabilities.
 
 This example showcases multiview rendering, which allows rendering to multiple views (such as stereo rendering for VR) in a single render pass. This technique is particularly useful for VR/AR applications where the same scene needs to be rendered from multiple viewpoints efficiently.
 
+## Command Line Parameters
+
+See [common/README.md](../common/README.md) for shared arguments available to all examples.
+
+| Parameter | Description | Values | Default |
+|-----------|-------------|--------|---------|
+| `--use-ext` | Use QCOM multiview extensions when available | `true`, `false` | `true` |
+
 ## Running the Example
 
 ### Desktop (Windows/Linux)
