@@ -9,7 +9,7 @@
 #include "test_app.h"
 #include <sstream>
 
-#define add_qhwi_test(s)                                                                                                                                                           \
+#define ADD_QHWI_TEST(s)                                                                                                                                                           \
     if ((testsParam.empty() || contains(testsParam, std::string(#s))) && !contains(excludeTestsParam, std::string(#s)))                                                            \
     {                                                                                                                                                                              \
         for (const auto& graphicsBackendStr : backends)                                                                                                                            \
@@ -100,7 +100,7 @@ TestApp::TestApp(int argc, const char* const* argv)
                .genRefs = params["gen-refs"].as<bool>(),
                .emulateUma = params["emulate-uma"].as<bool>(),
                .disableD3dEnhancedBarriers = params["disable-d3d-enhanced-barriers"].as<bool>() };
-#include "../tests.cmake"
+#include "qhwi_test_list.inc"
     if (tests.empty())
     {
         QHWI_FATAL("no tests found");

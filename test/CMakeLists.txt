@@ -21,8 +21,7 @@ if(ANDROID)
         DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/jniLibs/${ANDROID_ABI})
 else()
     add_executable(qhwi_test
-        ${QHWI_TEST_SOURCE_FILES}
-        tests.cmake)
+        ${QHWI_TEST_SOURCE_FILES})
 endif()
 
 target_include_directories(qhwi_test PRIVATE
@@ -83,5 +82,18 @@ function(add_qhwi_test name)
         add_qhwi_test_fn(${name} vk)
     endif()
 endfunction()
+
+# Generate a C++ header from the test names declared in tests.cmake so
+# test_app.cpp does not need its own duplicate list.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/tests.cmake)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/tests.cmake QHWI_TESTS_CMAKE_CONTENT)
+string(REGEX MATCHALL "add_qhwi_test\\([A-Za-z0-9_]+\\)" QHWI_TEST_INVOCATIONS "${QHWI_TESTS_CMAKE_CONTENT}")
+set(QHWI_TEST_LIST_INC_CONTENT "// Generated from tests.cmake by CMake. Do not edit directly.\n")
+foreach(invocation ${QHWI_TEST_INVOCATIONS})
+    string(REGEX REPLACE "add_qhwi_test\\(([A-Za-z0-9_]+)\\)" "\\1" test_name "${invocation}")
+    string(APPEND QHWI_TEST_LIST_INC_CONTENT "ADD_QHWI_TEST(${test_name})\n")
+endforeach()
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/qhwi_test_list.inc "${QHWI_TEST_LIST_INC_CONTENT}")
+target_include_directories(qhwi_test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 include(tests.cmake)
