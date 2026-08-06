@@ -28,7 +28,7 @@ cmake --build build --target qhwi_example_qcom_image_proc
 
 ### Command Line Parameters
 
-See [common/README.md](../common/README.md) for shared arguments available to all examples.
+See [README.md](../README.md) for shared arguments available to all examples.
 
 | Parameter | Description | Values | Default |
 |-----------|-------------|--------|---------|

@@ -30,11 +30,10 @@ The example supports both Vulkan and DirectX 12 graphics backends, making it one
 
 ## Command Line Parameters
 
-See [common/README.md](../common/README.md) for shared arguments available to all examples.
-
-You can specify the graphics backend using the `--backend` parameter:
-- `--backend=vk` for Vulkan (default on Linux/Android)
-- `--backend=d3d12` for DirectX 12 (default on Windows)
+| Parameter | Description | Values | Default |
+|-----------|-------------|--------|---------|
+| `--backend` | Graphics backend | `vk`, `d3d12` | `d3d12` (Windows), `vk` (Linux/Android) |
+| `--debug` | Enable debug layer | `true`, `false` | `true` (debug), `false` (release) |
 
 ## Running the Example
 

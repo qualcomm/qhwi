@@ -26,7 +26,7 @@ The example requires texture data to be installed:
 
 ## Command Line Parameters
 
-See [common/README.md](../common/README.md) for shared arguments available to all examples.
+See [README.md](../README.md) for shared arguments available to all examples.
 
 | Parameter | Description | Values | Default |
 |-----------|-------------|--------|---------|
