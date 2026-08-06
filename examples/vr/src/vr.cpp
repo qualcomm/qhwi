@@ -69,7 +69,9 @@ static std::vector<std::string> split(const std::string& str)
 VrExample::~VrExample()
 {
     if (m_primaryCommandQueue)
+    {
         m_primaryCommandQueue->waitForIdle();
+    }
 }
 
 void VrExample::initXrLoader()

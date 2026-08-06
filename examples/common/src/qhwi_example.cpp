@@ -119,39 +119,45 @@ ResultCode Example::init(const char* name, Config* config)
         if (!m_pilSelectedIds.empty())
         {
             m_pilRunning = true;
-            m_pilThread = std::thread([this]() {
-                auto rc = m_pil.Init();
-                if (rc != qhwi_metrics::ResultCode::eSuccess)
+            m_pilThread = std::thread(
+                [this]()
                 {
-                    QHWI_LOGI("[pil] worker Init failed (result=%d)", static_cast<int>(rc));
-                    m_pilRunning = false;
-                    return;
-                }
-                const qhwi_metrics::RealtimeMetricID* unavailable = nullptr;
-                size_t numUnavailable = 0;
-                rc = m_pil.StartRealtimeMonitor(m_pilSelectedIds.data(), m_pilSelectedIds.size(), &unavailable, &numUnavailable);
-                if (rc != qhwi_metrics::ResultCode::eSuccess)
-                {
-                    QHWI_LOGI("[pil] StartRealtimeMonitor failed (result=%d)", static_cast<int>(rc));
+                    auto rc = m_pil.Init();
+                    if (rc != qhwi_metrics::ResultCode::eSuccess)
+                    {
+                        QHWI_LOGI("[pil] worker Init failed (result=%d)", static_cast<int>(rc));
+                        m_pilRunning = false;
+                        return;
+                    }
+                    const qhwi_metrics::RealtimeMetricID* unavailable = nullptr;
+                    size_t numUnavailable = 0;
+                    rc = m_pil.StartRealtimeMonitor(m_pilSelectedIds.data(), m_pilSelectedIds.size(), &unavailable, &numUnavailable);
+                    if (rc != qhwi_metrics::ResultCode::eSuccess)
+                    {
+                        QHWI_LOGI("[pil] StartRealtimeMonitor failed (result=%d)", static_cast<int>(rc));
+                        m_pil.Shutdown();
+                        m_pilRunning = false;
+                        return;
+                    }
+                    while (m_pilRunning)
+                    {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                        if (!m_pilRunning)
+                        {
+                            break;
+                        }
+                        const qhwi_metrics::RealtimeData* values = nullptr;
+                        size_t count = 0;
+                        m_pil.GetRealtimeValues(&values, &count);
+                        std::lock_guard lock(m_pilValuesMutex);
+                        for (size_t i = 0; i < count; ++i)
+                        {
+                            m_pilValuesCache[values[i].metricId] = values[i].value;
+                        }
+                    }
+                    m_pil.StopRealtimeMonitor();
                     m_pil.Shutdown();
-                    m_pilRunning = false;
-                    return;
-                }
-                while (m_pilRunning)
-                {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-                    if (!m_pilRunning)
-                        break;
-                    const qhwi_metrics::RealtimeData* values = nullptr;
-                    size_t count = 0;
-                    m_pil.GetRealtimeValues(&values, &count);
-                    std::lock_guard lock(m_pilValuesMutex);
-                    for (size_t i = 0; i < count; ++i)
-                        m_pilValuesCache[values[i].metricId] = values[i].value;
-                }
-                m_pil.StopRealtimeMonitor();
-                m_pil.Shutdown();
-            });
+                });
         }
     }
 
@@ -239,7 +245,9 @@ void Example::onStatsUpdated(const FrameStats& stats) {}
 void Example::shutdown()
 {
     if (m_commandQueue)
+    {
         m_commandQueue->waitForIdle();
+    }
 }
 
 Example::~Example()
@@ -248,7 +256,9 @@ Example::~Example()
     {
         m_pilRunning = false;
         if (m_pilThread.joinable())
+        {
             m_pilThread.join();
+        }
     }
     if (m_measuredFrameCount > 0 && m_lifetimeDuration > std::chrono::nanoseconds::zero())
     {
@@ -301,7 +311,9 @@ void Example::runIteration()
                 {
                     auto it = m_pilMetricNames.find(id);
                     if (it != m_pilMetricNames.end())
+                    {
                         stats.realtimeMetrics[it->second] = value;
+                    }
                 }
                 for (const auto& [name, value] : stats.realtimeMetrics)
                 {
