@@ -142,6 +142,16 @@ jobs:
       - name: Install Android NDK 23.1.7779620
         run: echo "y" | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "ndk;23.1.7779620"
 
+      - name: Generate gradle-wrapper.jar
+        # gradle-wrapper.jar is gitignored (QCOM GitHub's no-binaries-allowed
+        # policy) and regenerated from genwrapper.py's embedded payload.
+        # gradlew.bat does this inline on Windows; POSIX gradlew has no
+        # equivalent step, so it must be done explicitly here.
+        run: |
+          for wrapper in test/android/gradle/wrapper examples/*/android/gradle/wrapper; do
+            python3 "$wrapper/genwrapper.py" > "$wrapper/gradle-wrapper.jar"
+          done
+
       - name: Build test APK
         working-directory: test/android
         run: |

@@ -145,7 +145,6 @@ function(get_dxc)
         endif()
 
     elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-        set(dxc_SOURCE_DIR ${DEFAULT_DEPENDENCY_DIR})
         if(NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "AMD64" AND NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
             message(FATAL_ERROR "Non-x64 Linux host systems not yet supported.")
         endif()
@@ -165,8 +164,25 @@ function(get_dxc)
             )
         endif()
 
+        # The Linux release tarball's layout is not stable across DXC
+        # releases: some extract flat (bin/, lib/, include/ directly under
+        # the extraction root), others nest everything one level down under
+        # a versioned top-level directory (e.g. linux_dxc_2026_07_29.x86_x64/).
+        # Locate the extracted 'dxc' binary rather than assuming a fixed path.
+        file(GLOB DXC_LINUX_CANDIDATES
+            "${DEFAULT_DEPENDENCY_DIR}/bin/dxc"
+            "${DEFAULT_DEPENDENCY_DIR}/*/bin/dxc"
+        )
+        list(LENGTH DXC_LINUX_CANDIDATES DXC_LINUX_CANDIDATES_COUNT)
+        if(DXC_LINUX_CANDIDATES_COUNT EQUAL 0)
+            message(FATAL_ERROR "Could not locate the 'dxc' binary after extracting the Linux DXC package into ${DEFAULT_DEPENDENCY_DIR}.")
+        endif()
+        list(GET DXC_LINUX_CANDIDATES 0 DXC_LINUX_EXECUTABLE)
+        get_filename_component(DXC_BINARIES_DIR "${DXC_LINUX_EXECUTABLE}" DIRECTORY)
+        get_filename_component(dxc_SOURCE_DIR "${DXC_BINARIES_DIR}" DIRECTORY)
+
         set(DXC_LIBRARIES_DIR ${dxc_SOURCE_DIR}/lib)
-        set(DXC_BINARIES_DIR ${dxc_SOURCE_DIR}/bin CACHE INTERNAL "")
+        set(DXC_BINARIES_DIR ${DXC_BINARIES_DIR} CACHE INTERNAL "")
         set(DXC_HOST_BINARIES_DIR ${DXC_BINARIES_DIR})
         set(DXC_INCLUDE_DIR ${dxc_SOURCE_DIR}/include/dxc CACHE INTERNAL "")
         set(DXC_LIBRARIES ${DXC_LIBRARIES_DIR}/libdxcompiler.so CACHE INTERNAL "")
