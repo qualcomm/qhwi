@@ -17,7 +17,7 @@ jobs:
       enable-copyright-license-check: true
       enable-commit-email-check: true
       enable-commit-msg-check: false
-      enable-armor-checkers: false
+      enable-armor-checkers: true
     permissions:
       contents: read
       security-events: write
