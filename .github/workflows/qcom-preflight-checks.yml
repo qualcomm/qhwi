@@ -13,7 +13,7 @@ jobs:
     with:
       enable-semgrep-scan: true
       enable-dependency-review: true
-      enable-repolinter-check: false   # disabled — see repolinter job below
+      enable-repolinter-check: true
       enable-copyright-license-check: true
       enable-commit-email-check: true
       enable-commit-msg-check: false
@@ -21,16 +21,3 @@ jobs:
     permissions:
       contents: read
       security-events: write
-
-  repolinter:
-    name: Repolinter Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: todogroup/repolinter-action@v1
-        with:
-          config_file: repolint.json
-          output_type: exit-code
-          output_name: "[Repolinter] Open Source Policy Issues"
-          label_name: repolinter
-          label_color: fbca04
