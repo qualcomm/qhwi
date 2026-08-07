@@ -130,6 +130,7 @@ jobs:
   build-android:
     name: Build / Android
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
         with:
@@ -160,13 +161,17 @@ jobs:
           chmod +x gradlew
           ./gradlew assemble
 
-      - name: Build example APKs
+      - name: Build example APKs (parallel)
         run: |
-          for dir in examples/*/android; do
+          export -f build_example
+          build_example() {
+            local dir="$1"
             echo "=== Building $dir ==="
             chmod +x "$dir/gradlew"
             (cd "$dir" && ./gradlew assemble)
-          done
+          }
+          export -f build_example
+          find examples -maxdepth 2 -name gradlew -type f | xargs -I {} dirname {} | xargs -P 4 -I {} bash -c 'build_example "{}"'
 
   # ---------------------------------------------------------------------------
   # Format check — clang-format dry run
