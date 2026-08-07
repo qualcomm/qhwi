@@ -124,7 +124,10 @@ jobs:
         run: cmake --build build --parallel --target qhwi_test --config Debug
 
   # ---------------------------------------------------------------------------
-  # Android — Gradle assemble for test APK and all example APKs
+  # Android — Gradle assemble for the test APK only.
+  # Example APKs are not built here: building them all in one job (even in
+  # parallel) exhausts the GitHub-hosted runner's disk space between the NDK,
+  # Gradle caches, and per-example native builds.
   # Requires NDK 23.1.7779620 as declared in app/build.gradle.
   # ---------------------------------------------------------------------------
   build-android:
@@ -150,25 +153,13 @@ jobs:
         # policy) and regenerated from genwrapper.py's embedded payload.
         # gradlew.bat does this inline on Windows; POSIX gradlew has no
         # equivalent step, so it must be done explicitly here.
-        run: |
-          for wrapper in test/android/gradle/wrapper examples/*/android/gradle/wrapper; do
-            python3 "$wrapper/genwrapper.py" > "$wrapper/gradle-wrapper.jar"
-          done
+        run: python3 test/android/gradle/wrapper/genwrapper.py > test/android/gradle/wrapper/gradle-wrapper.jar
 
       - name: Build test APK
         working-directory: test/android
         run: |
           chmod +x gradlew
           ./gradlew assemble
-
-      - name: Build example APKs (parallel)
-        run: |
-          find examples -maxdepth 3 -name gradlew -type f | sed 's|/gradlew||' | sort | xargs -P 4 -I {} bash -c '
-            dir="{}"
-            echo "=== Building $dir ==="
-            chmod +x "$dir/gradlew"
-            (cd "$dir" && ./gradlew assemble)
-          '
 
   # ---------------------------------------------------------------------------
   # Format check — clang-format dry run
