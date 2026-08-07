@@ -17,10 +17,6 @@ jobs:
   build-windows-msvc:
     name: Build / Windows (MSVC)
     runs-on: windows-2022
-    # Disabled: external/qre and test/ref submodules are not yet publicly
-    # accessible, so they aren't reachable from public CI runners.
-    # Re-enable once those repos are made public (or the submodules are repointed).
-    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,8 +45,6 @@ jobs:
   build-windows-clang:
     name: Build / Windows (Clang)
     runs-on: windows-2022
-    # Disabled: see build-windows-msvc above.
-    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -95,8 +89,6 @@ jobs:
   build-linux:
     name: Build / Linux (Clang)
     runs-on: ubuntu-latest
-    # Disabled: see build-windows-msvc above.
-    if: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -108,6 +100,7 @@ jobs:
           sudo apt-get install -y \
             clang \
             ninja-build \
+            libbsd-dev \
             libvulkan-dev \
             libx11-dev \
             libxrandr-dev \
@@ -135,8 +128,6 @@ jobs:
   build-android:
     name: Build / Android
     runs-on: ubuntu-latest
-    # Disabled: see build-windows-msvc above.
-    if: false
     steps:
       - uses: actions/checkout@v4
         with:

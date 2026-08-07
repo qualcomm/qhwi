@@ -34,7 +34,7 @@ void MSMain(
     in payload MeshPayload meshPayload,
     uint threadId : SV_DispatchThreadID)
 {
-    SetMeshOutputCounts(NUM_PRIMITIVES, NUM_VERTICES);
+    SetMeshOutputCounts(NUM_VERTICES, NUM_PRIMITIVES);
 
      VertexPosColor vert1 = vertexPosColBuffer[0];
      VertexPosColor vert2 = vertexPosColBuffer[1];
