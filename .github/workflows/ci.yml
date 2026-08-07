@@ -163,15 +163,12 @@ jobs:
 
       - name: Build example APKs (parallel)
         run: |
-          export -f build_example
-          build_example() {
-            local dir="$1"
+          find examples -maxdepth 3 -name gradlew -type f | sed 's|/gradlew||' | sort | xargs -P 4 -I {} bash -c '
+            dir="{}"
             echo "=== Building $dir ==="
             chmod +x "$dir/gradlew"
             (cd "$dir" && ./gradlew assemble)
-          }
-          export -f build_example
-          find examples -maxdepth 2 -name gradlew -type f | xargs -I {} dirname {} | xargs -P 4 -I {} bash -c 'build_example "{}"'
+          '
 
   # ---------------------------------------------------------------------------
   # Format check — clang-format dry run
