@@ -101,6 +101,7 @@ jobs:
             clang \
             ninja-build \
             libbsd-dev \
+            libgl1-mesa-dev \
             libvulkan-dev \
             libx11-dev \
             libxrandr-dev \
