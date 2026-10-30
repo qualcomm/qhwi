@@ -83,7 +83,7 @@ file(GLOB_RECURSE QHWI_SOURCE_FILES
     include/qhwi/qhwi_enums.h
     include/qhwi/qhwi_log_util.h
     include/qhwi/qhwi_ops.h
-    data/precompiled/qhwi_shaders.h
+    ${CMAKE_BINARY_DIR}/qhwi_precompiled/qhwi_shaders.h
 )
 file(GLOB_RECURSE QHWI_D3D12_SOURCE_FILES
     src/qhwi_d3d12.cpp
@@ -222,7 +222,7 @@ target_include_directories(qhwi
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         $<$<BOOL:${QHWI_ENABLE_PIL}>:${PIL_INCLUDE_DIR}>
-        ${CMAKE_CURRENT_SOURCE_DIR}/data/precompiled
+        ${CMAKE_BINARY_DIR}/qhwi_precompiled
 )
 
 target_include_directories(qhwi

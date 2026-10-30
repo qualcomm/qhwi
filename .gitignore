@@ -11,6 +11,5 @@
 **/.vs
 /out/build
 __pycache__
-data/precompiled/
 .
 .idea

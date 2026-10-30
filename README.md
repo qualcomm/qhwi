@@ -101,7 +101,6 @@ The build system provides the following options:
 - *QHWI_ENABLE_VULKAN_BACKEND*: enable the Vulkan backend (available on Windows, Linux, Android, ON by default)
 - *QHWI_BUILD_UNIT_TESTS*: build the QHWI unit tests
 - *QHWI_BUILD_EXAMPLES*: build the QHWI examples
-- *QHWI_BUILD_SHADERS*: build the QHWI shaders standalone (implied by *QHWI_BUILD_UNIT_TESTS*)
 - *QHWI_ENABLE_COMPRESSED_STORAGE*: enable fast, GPU-targeted asset loading with optional on-the-fly decompression — DirectStorage on D3D12, and Vulkan's `VK_EXT_memory_decompression` + GDeflate tile decoding on Vulkan (OFF by default; see [Compressed Storage](#compressed-storage) below)
 - *QHWI_ENABLE_QCOM_TILE_SHADING*: enable the use of `VK_QCOM_tile_shading` (requires *QHWI_ENABLE_VULKAN_BACKEND*)
 - *QHWI_ENABLE_TRACY*: enable Tracy profiling support
@@ -197,6 +196,7 @@ Alternatively, can build from command line:
 - Windows has a path length limitation of 260 bytes
 - Can try removing the path limitation in the registry:
 [Remove path limitation][https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry]
+
 ### Notes
 - CMake build script packages all the shaders as part of Android APK (in assets folder)
 - CMake build script also downloads / packages the Vulkan prebuilt validation layer
